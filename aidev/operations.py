@@ -6,7 +6,7 @@ import sys
 import threading
 from tkinter import filedialog, ttk
 import tkinter as tk
-from . import factory
+from . import factory, orchestrators
 from .activity import receipts
 from .storage import settings
 from .runtime import now
@@ -52,7 +52,8 @@ class Operations:
         self.follow_button.pack(side='right')
         self.refresh_activity()
         ttk.Label(factory_frame, text=self.text('factory_note'), wraplength=740).pack(anchor='w', pady=10)
-        self.factory_path = ttk.Label(factory_frame, text=settings().get('factory', {}).get('package', self.text('not_configured')), wraplength=740)
+        selected = orchestrators.selected()
+        self.factory_path = ttk.Label(factory_frame, text=selected.get('name') or self.text('orchestrator_none'), wraplength=740)
         self.factory_path.pack(anchor='w')
         row = ttk.Frame(factory_frame); row.pack(fill='x', pady=12)
         ttk.Button(row, text=self.text('factory_select'), command=self.select_factory).pack(side='left')
@@ -175,15 +176,17 @@ class Operations:
         self.notebook.select(self.mission_frame)
 
     def select_factory(self):
-        selected = filedialog.askdirectory(parent=self.root)
-        if selected:
-            try:
-                self.factory_path.configure(text=str(factory.configure(selected)))
-                self.refresh_factory()
-            except Exception as error:
-                self.error(error)
+        orchestrators.choose(self.root, self.language, self.refresh_factory)
 
     def refresh_factory(self):
+        selection = orchestrators.selected()
+        self.factory_generation += 1
+        self.factory_path.configure(text=selection.get('name') or self.text('orchestrator_none'))
+        self.factory_open.configure(state='disabled' if selection['kind'] == 'none' else 'normal')
+        self.factory_refresh.configure(state='normal')
+        if selection['kind'] != 'factory':
+            self.set_text(self.factory_details, self.text('orchestrator_none_note' if selection['kind'] == 'none' else 'orchestrator_custom_note'))
+            return
         generation = self.factory_generation
         self.factory_refresh.configure(state='disabled')
         self.set_text(self.factory_details, self.text('loading'))
@@ -209,14 +212,17 @@ class Operations:
         self.background(factory.brief, completed)
 
     def open_factory(self):
+        if orchestrators.selected()['kind'] == 'none':
+            self.select_factory()
+            return
         self.factory_open.configure(state='disabled')
         def completed(ok, result):
             self.factory_open.configure(state='normal')
-            if ok:
+            if ok and result:
                 subprocess.Popen([sys.executable, str(Path(__file__).resolve().parent.parent/'launch.py'), '--action', 'web', '--url', result])
-            else:
+            elif not ok:
                 self.error(result)
-        self.background(factory.ensure_workbench, completed)
+        self.background(orchestrators.open_selected, completed)
 
     def deck_language(self):
         def generate():

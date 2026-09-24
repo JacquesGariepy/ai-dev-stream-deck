@@ -2,6 +2,8 @@
 
 A local Windows control panel for installed AI coding harnesses, PowerShell account profiles, and an Elgato Stream Deck.
 
+No orchestrator is bundled, installed, cloned or required. Use the harnesses directly, connect an existing external Factory, or choose a custom orchestrator such as OpenClaw, AX or another tool via its executable or dashboard URL. Your selection stays in private local settings.
+
 Choose a project, harness and profile, then give the agent an **English objective**. The human interface supports **French and English** independently of the agent protocol. No API key is required by the launcher; each harness uses its own existing account and permissions.
 
 ## Requirements
@@ -59,7 +61,7 @@ pwsh -File scripts/Install.ps1 -StreamDeck
 
 Import the `.streamDeckProfile` path printed by the installer. It is generated for **your workstation**, with local shortcut paths and the detected device. Never commit that generated archive. It is not a portable binary preset.
 
-The base layout has **68 configured positions across five pages** (including Back buttons): home, Prompts, Editor, AI Web and Apps. Additional profile pages are generated from the workstation's detected harnesses and PowerShell commands. It includes Factory, sessions, project selection, all 14 editor shortcuts, all 14 English prompts, Cursor, VS Code, Orca, capture, CPU/RAM, files, guide, tool diagnostics, Git inspection and logs. See the [complete button map](docs/BUTTONS.md). Agent prompt buttons always insert English text and do not press Enter. Editor shortcuts target the active application. A running session continues when you switch Stream Deck pages.
+The base layout has **74 configured positions across six pages** (including Back buttons): home, Prompts, Editor, AI Web, Apps and System. Additional profile pages are generated from the workstation's detected harnesses and PowerShell commands. It includes optional external orchestration, sessions, project selection, all 14 editor shortcuts, all 14 English prompts, Cursor, VS Code, Orca, capture, CPU/RAM, files, guide, tool diagnostics, Git inspection and logs. See the [complete button map](docs/BUTTONS.md). Agent prompt buttons always insert English text and do not press Enter. Editor shortcuts target the active application. A running session continues when you switch Stream Deck pages.
 
 **CODEX / CLAUDE / AGY** open their detected profile subpages. **PROFILES** lists every detected harness, including additional tools such as Cursor. Each profile key (for example `CODEX / WORK`) opens the mission panel with that exact command selected, overriding any remembered account. It does not start a paid mission. Default CLI entries are explicitly labeled DEFAULT; unavailable CLI entries have an orange `!` marker. A removed or renamed profile produces an error instead of falling back to another account. Large inventories get MORE subpages; profile selection data stays outside the public source.
 
@@ -105,9 +107,17 @@ A receipt records a prepared/running/exited/launch_error process state. **Activi
 
 Completed or interrupted sessions offer **Prepare next mission**: an English verification or diagnosis objective, with the same project and exact profile when still available. A prepared receipt with no start confirmation after 30 seconds is shown as unconfirmed and offers diagnosis too. You review and launch it explicitly. This does not resume the original provider conversation or automatically retry a failed task.
 
-## Factory integration
+## Optional external orchestrators
 
-In **Factory control**, choose your existing `agentic-sdlc-factory` installation folder once (or set `AI_DEV_FACTORY`). Its path stays in private local settings. The **FACTORY** hardware button starts or reuses the native Factory workbench on loopback and opens it through the same Chrome/Edge chooser. The **CONTROL / PILOTAGE** button opens canonical task counts, executing attempts and pending decisions in AI Dev. Refresh reads `autopilot.py status --brief`; it never equates tasks marked executing with live agents.
+In **Orchestrator (optional)**, **Choose orchestrator / Factory** offers **None**, **Factory (external)** and **Custom**. New installations default to None. Existing explicit Factory settings are preserved; choosing None overrides them without deleting the saved installation path. Project folders never implicitly select Factory.
+
+For a custom orchestrator, enter its name and either its dashboard URL or its executable, argument list and working directory. For scripts, select the interpreter executable and pass the script path as an argument. The app does not guess provider-specific commands, install dependencies or launch anything when saving. OpenClaw and AX are examples of user-selected tools, not claims of dedicated adapters. Generic integrations expose no task, token, cost or agent telemetry; use the orchestrator's own interface.
+
+The **ORCH** key opens the selected external tool; **CONTROL / PILOTAGE** opens its configuration and supported status. Existing Factory shortcut names remain compatible and route through this selection. Reimport the generated Stream Deck profile to update its visible label.
+
+### Optional Factory adapter
+
+Choose your existing `agentic-sdlc-factory` installation folder (or use the legacy `AI_DEV_FACTORY` setting). The repository contains only the optional adapter, not Factory source, tasks or dependencies. Its path stays in private local settings. When Factory is selected, **ORCH** starts or reuses its workbench on loopback and opens it through the Chrome/Edge chooser. **CONTROL / PILOTAGE** shows canonical task counts and pending decisions. Refresh reads `autopilot.py status --brief`; it never equates tasks marked executing with live agents.
 
 The integration uses the Factory installation's virtual environment when present. It verifies the workbench's package identity, never takes over an unrelated service, and starts it with `127.0.0.1` binding. The workbench remains running after the panel closes. Logs are private under `factory/workbench.log`. Its native Git-health supervisor also runs as part of the existing workbench.
 

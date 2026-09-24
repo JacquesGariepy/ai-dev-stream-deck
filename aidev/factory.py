@@ -12,11 +12,9 @@ from .storage import data_dir, settings, save_settings
 
 
 def installation(value=None):
-    value = value or os.environ.get('AI_DEV_FACTORY') or settings().get('factory', {}).get('package')
-    if not value:
-        candidate = Path(settings().get('project', '.'))
-        if (candidate / 'automation/control_server.py').is_file():
-            value = str(candidate)
+    config = settings()
+    chosen = config.get('orchestrator', {})
+    value = value or (chosen.get('package') if chosen.get('kind') == 'factory' else None) or os.environ.get('AI_DEV_FACTORY') or config.get('factory', {}).get('package')
     if not value:
         raise ValueError('Select the Factory installation folder first.')
     package = Path(value).expanduser().resolve(strict=True)
