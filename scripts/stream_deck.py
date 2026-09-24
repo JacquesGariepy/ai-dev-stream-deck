@@ -6,13 +6,15 @@ from pathlib import Path
 import struct
 import subprocess
 import sys
+import textwrap
 import uuid
 import zipfile
 import zlib
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from aidev.agents import TEXT_PROMPTS
-from aidev.discovery import powershell
-from aidev.i18n import resolve_language, tr
+from aidev.discovery import powershell, discover
+from aidev.deck_profiles import save_selections, selection_id
+from aidev.i18n import resolve_language
 from aidev.storage import data_dir, settings
 
 
@@ -35,13 +37,13 @@ def hotkey(title, key, ctrl=False, shift=False, alt=False, win=False, qt=None):
     return action(title,'system.hotkey',{'Coalesce':True,'Hotkeys':[actual,blank,blank,blank]})
 
 
-def generate(output, device, language, links):
+def generate(output, device, language, links, entries=None):
     ids={name:str(uuid.uuid4()) for name in ('profile','home','prompts','editor','web','apps','pinned')}
     label=lambda en,fr:fr if language=='fr' else en
     def opened(title, name, description):
         return action(title,'system.open',{'path':'"'+str(links/(name+'.lnk'))+'"'},description)
     def folder(title,name):
-        return action(title,'profile.openchild',{'ProfileUUID':ids[name]})
+        return action(title,'profile.openchild',{'ProfileUUID':ids.setdefault(name,str(uuid.uuid4()))})
     def website(title,site):
         return opened(title,'web-'+site,'Open the website with the user-selected browser and work/personal context. Ask first unless the user saved a browser preference.')
     back=action(label('BACK','RETOUR'),'profile.backtoparent',{})
@@ -81,6 +83,43 @@ def generate(output, device, language, links):
                website('CHATGPT','chatgpt'),website('CLAUDE','claude'),website('GEMINI','gemini'),
                website('PERPLEXITY','perplexity'),website('GITHUB','github'),website('GITHUB PR','github-pr'),website('ISSUES','github-issues')],
     }
+    refresh = opened(label('REFRESH','ACTUALISER'),'deck-refresh-'+language,
+                     'Detect installed harnesses and exact PowerShell profiles again, then open the standard Stream Deck import dialog. Install the generated profile to update hardware buttons.')
+    def paginated(name, buttons, panel_action):
+        # Back + panel + refresh + 11 entries + optional next folder fit 15 keys.
+        chunks = [buttons[i:i+11] for i in range(0,len(buttons),11)] or [[]]
+        for index, chunk in enumerate(chunks):
+            page = name if index == 0 else name+'-'+str(index)
+            ids.setdefault(page,str(uuid.uuid4()))
+            pages[page] = [back, panel_action, refresh, *chunk]
+            if index + 1 < len(chunks):
+                pages[page].append(folder(label('MORE','SUITE'),name+'-'+str(index+1)))
+    groups = {}
+    unique = {(row['tool'],row['profile'],row['command']):row for row in (entries or [])}
+    for row in sorted(unique.values(),key=lambda r:(r['tool'],r['profile'],r['command'])):
+        groups.setdefault(row['tool'],[]).append(row)
+    tool_folders = {}
+    for index, (tool, rows) in enumerate(groups.items()):
+        page = 'harness-'+str(index)
+        buttons = []
+        for row in rows:
+            display = label('DEFAULT','DEFAUT') if row['kind']=='application' else row['profile'].upper()
+            title = tool.upper()+'\n'+'\n'.join(textwrap.wrap(display,9)[:2])
+            if not row['available']:
+                title = '! '+title
+            button = opened(title,'profile-'+selection_id(row),
+                            'Open the AI Dev mission panel with this exact detected harness, profile and command selected. Recheck availability; never fall back to another account.')
+            button['Name'] = tool+' / '+row['profile']+' / '+(row['command'] if row['kind']!='application' else 'default')
+            if not row['available']:
+                button['States'][0]['TitleColor'] = '#ffbd66'
+            buttons.append(button)
+        paginated(page,buttons,opened(label('PANEL','PANNEAU'),tool if tool in ('codex','claude','agy') else 'mission','Open the mission panel to choose a harness and profile.'))
+        tool_folders[tool]=folder(('! ' if not any(row['available'] for row in rows) else '')+tool.upper(),page)
+    paginated('profiles',list(tool_folders.values()),opened('MISSION','mission','Open the mission panel to choose a harness and profile.'))
+    pages['home'][4]=folder(label('PROFILES','PROFILS'),'profiles')
+    for position, tool in ((1,'codex'),(2,'claude'),(3,'agy')):
+        if tool in tool_folders:
+            pages['home'][position]=tool_folders[tool]
     prefix=ids['profile'].upper()+'.sdProfile'
     output.parent.mkdir(parents=True,exist_ok=True)
     with zipfile.ZipFile(output,'w',zipfile.ZIP_DEFLATED) as archive:
@@ -102,8 +141,10 @@ def main():
     links=data_dir()/'stream-deck/Launchers'
     root=Path(__file__).resolve().parents[1]
     pythonw=Path(sys.executable).with_name('pythonw.exe')
+    entries = discover()['entries']
+    selections = save_selections(entries)
     subprocess.run([powershell(),'-NoProfile','-File',str(Path(__file__).with_name('Create-Shortcuts.ps1')),
-                    '-PythonPath',str(pythonw),'-LauncherPath',str(root/'launch.py'),'-OutputDirectory',str(links)],check=True)
+                    '-PythonPath',str(pythonw),'-LauncherPath',str(root/'launch.py'),'-OutputDirectory',str(links),'-ProfilesPath',str(selections)],check=True)
     profile_root=Path(os.environ['APPDATA'])/'Elgato/StreamDeck/ProfilesV3'
     device=None
     for manifest in sorted(profile_root.glob('*.sdProfile/manifest.json')):
@@ -113,7 +154,8 @@ def main():
     if not device:
         raise RuntimeError('Connect a 15-key Stream Deck and create a profile in Stream Deck first. Other models need a layout adapter.')
     language = resolve_language(args.language or settings().get('language','auto'))
-    output=generate(data_dir()/('stream-deck/AI-Dev-'+language.upper()+'.streamDeckProfile'),device,language,links)
+    output=generate(data_dir()/('stream-deck/AI-Dev-'+language.upper()+'.streamDeckProfile'),device,language,links,entries)
+    print(f'Detected {len(entries)} profile entries across {len({r["tool"] for r in entries})} harnesses.')
     print('Import this local file in Stream Deck (do not commit it): '+str(output))
     if args.import_profile:
         os.startfile(output)

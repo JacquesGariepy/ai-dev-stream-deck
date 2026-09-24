@@ -9,11 +9,32 @@ def main():
     parser.add_argument('--discover', action='store_true', help='Print local inventory; contains private paths, do not publish it.')
     parser.add_argument('--run', type=Path, help=argparse.SUPPRESS)
     parser.add_argument('--tool', help='Preselect a detected harness.')
+    parser.add_argument('--profile-id', help='Exact locally generated Stream Deck profile selection.')
+    parser.add_argument('--deck-language', choices=['en','fr'], help='Language of the Stream Deck profile to refresh.')
     parser.add_argument('--url', help='HTTP(S) URL for an explicit browser launch.')
     parser.add_argument('--web-context', choices=['work','personal'])
-    parser.add_argument('--action', choices=['mission', 'context', 'status', 'codex', 'claude', 'agy','terminal','files','guide','browser','web','web-work','web-personal','factory','factory-status','cursor','vscode','orca','monitor'], default='mission')
+    parser.add_argument('--action', choices=['mission', 'context', 'status', 'codex', 'claude', 'agy','terminal','files','guide','browser','web','web-work','web-personal','factory','factory-status','cursor','vscode','orca','monitor','deck-refresh'], default='mission')
     args = parser.parse_args()
-    if args.action in ('browser','web','web-work','web-personal'):
+    if args.profile_id or args.action == 'deck-refresh':
+        try:
+            if args.profile_id:
+                from .deck_profiles import load_selection
+                from .ui import Panel
+                Panel(initial_selection=load_selection(args.profile_id)).run()
+            else:
+                import subprocess
+                import sys
+                command = [sys.executable, str(Path(__file__).resolve().parent.parent/'scripts/stream_deck.py'), '--import-profile']
+                if args.deck_language:
+                    command += ['--language',args.deck_language]
+                subprocess.run(command, check=True)
+        except Exception as error:
+            from tkinter import Tk, messagebox
+            from .i18n import tr, resolve_language
+            root = Tk(); root.withdraw()
+            messagebox.showerror(tr('error',resolve_language(settings().get('language','auto'))), str(error), parent=root)
+            root.destroy()
+    elif args.action in ('browser','web','web-work','web-personal'):
         from .browsers import browser_dialog, open_website, select_context, validate_url
         if args.action == 'web':
             if not args.url: parser.error('--action web requires --url')

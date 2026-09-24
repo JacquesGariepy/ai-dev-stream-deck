@@ -1,6 +1,6 @@
 # Complete Stream Deck button map
 
-The 15-key layout has 65 configured positions: 15 home, 15 prompts, 15 editor, 11 web, 9 apps. Each subpage has a Back button. All hardware names follow the generated FR/EN language. Agent prompt contents and MCP action descriptions remain English.
+The 15-key layout has 65 base positions: 15 home, 15 prompts, 15 editor, 11 web, 9 apps, plus generated harness/profile pages. Each subpage has a Back button. All hardware names follow the generated FR/EN language; account names retain their actual names. Agent prompt contents and MCP action descriptions remain English.
 
 | Page | Controls |
 |---|---|
@@ -9,6 +9,8 @@ The 15-key layout has 65 configured positions: 15 home, 15 prompts, 15 editor, 1
 | Editor | Back; Commands, Find file, Search, Save, Format, Copy, Paste, Panel, Problems, Rename, Definition, Undo, Redo, Escape |
 | AI Web | Back; Browser settings, Work, Personal, ChatGPT, Claude, Gemini, Perplexity, GitHub, Pull requests, Issues |
 | Apps | Back; Cursor desktop, VS Code, Orca, CPU/RAM, Capture, Files, Guide, Settings/language |
+| Profiles | Back; Mission, Refresh, each detected harness, More when needed |
+| Each harness | Back; Panel, Refresh, each exact detected profile/default CLI, More when needed |
 
 ## Editor shortcuts
 
@@ -31,9 +33,10 @@ These target the currently focused app and use common VS Code/Cursor defaults; c
 
 ## Language, profiles and agent control
 
-- **Profiles / Mission** detects installed harnesses and PowerShell account commands; choose the exact profile before launch.
+- **Codex / Claude / AGY** open their profile folders when detected. **Profiles** lists all detected harnesses, including unavailable wrappers marked `!`. A profile key opens the panel with its exact command selected, overriding the remembered account. No agent starts until you choose Open session or Launch mission.
+- **Refresh / Actualiser** redetects profiles and opens the standard profile import. Install the generated profile to update hardware labels. Detection is not a live hardware watcher; stale profile keys refuse to silently select another account.
 - **Sessions** opens live receipt observations and the next suggested verification/diagnosis mission.
 - **Factory** opens the native local workbench through your chosen Chrome/Edge context. **Control** reads Factory status and blockers.
-- **Settings** opens the panel language selector. Choose Français or English, then Apply language to Stream Deck and install the generated profile. Both imported languages can coexist.
+- **Settings** opens the panel language selector. Choose Français or English, then Update Stream Deck: profiles + language and install the generated profile. Both imported languages can coexist.
 - Web context controls do not switch a CLI account or a browser's internal profile.
 - Subpages do not stop running agents. MCP exposure remains a separate virtual deck managed in Stream Deck.

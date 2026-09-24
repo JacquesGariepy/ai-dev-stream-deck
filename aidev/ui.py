@@ -3,7 +3,7 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from .agents import MISSION_ADAPTERS, WORKFLOWS
-from .discovery import discover
+from .discovery import discover, find_entry
 from .i18n import resolve_language, tr, windows_locale
 from .runtime import capture_context, open_sessions, prepare, spawn_terminal
 from .storage import save_settings, settings
@@ -11,11 +11,17 @@ from .operations import Operations
 
 
 class Panel(Operations):
-    def __init__(self, initial_tool=None, initial_tab='mission'):
+    def __init__(self, initial_tool=None, initial_tab='mission', initial_selection=None):
         self.preferences = settings()
         self.preference = self.preferences.get('language', 'auto')
         self.language = resolve_language(self.preference)
         self.catalog = discover()
+        selected_entry = None
+        if initial_selection:
+            selected_entry = find_entry(self.catalog, initial_selection['tool'], initial_selection['profile'], initial_selection['command'])
+            if selected_entry is None:
+                raise ValueError(tr('profile_removed', self.language))
+            initial_tool = selected_entry['tool']
         self.root = tk.Tk()
         self.root.geometry('980x800')
         self.root.minsize(920, 760)
@@ -25,6 +31,9 @@ class Panel(Operations):
         self.workflow = 'implement'
         self.objective_value = ''
         self.render()
+        if selected_entry:
+            self.profile.set(next(label for label, row in self.profile_rows.items() if row == selected_entry))
+            self.update_status()
         self.notebook.select({'mission':self.mission_frame, 'activity':self.activity_frame, 'factory':self.factory_frame}[initial_tab])
         if initial_tab == 'factory':
             self.refresh_factory()

@@ -3,9 +3,10 @@ import locale
 import os
 
 STRINGS = {
+    'profile_removed': ('The exact profile selected on Stream Deck is no longer detected. Refresh the Stream Deck profiles. No other account was selected.', 'Le profil exact choisi sur Stream Deck n’est plus détecté. Actualise les profils Stream Deck. Aucun autre compte n’a été sélectionné.'),
     'mission_tab': ('Mission', 'Mission'), 'activity_tab': ('Activity & next actions', 'Activité et prochaines actions'),
     'factory_tab': ('Factory control', 'Pilotage Factory'),
-    'deck_language': ('Apply language to Stream Deck', 'Appliquer la langue au Stream Deck'),
+    'deck_language': ('Update Stream Deck: profiles + language', 'Actualiser Stream Deck : profils + langue'),
     'deck_note': ('Opens the standard profile import.', 'Ouvre l’import normal du profil.'),
     'work': ('Work', 'Travail'), 'personal': ('Personal', 'Personnel'),
     'state': ('State', 'État'), 'created': ('Created', 'Créée'), 'reload': ('Refresh', 'Actualiser'),
