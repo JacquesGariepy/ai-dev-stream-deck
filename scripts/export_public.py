@@ -6,7 +6,7 @@ import zipfile
 
 ROOT=Path(__file__).resolve().parents[1]
 FIXED=['README.md','LICENSE','SECURITY.md','CONTRIBUTING.md','pyproject.toml','.gitignore','launch.py']
-PATTERNS=['aidev/**/*.py','aidev/scripts/*.ps1','scripts/*.py','scripts/*.ps1','tests/*.py','docs/*.md','.github/workflows/*.yml']
+PATTERNS=['aidev/**/*.py','aidev/scripts/*.ps1','scripts/*.py','scripts/*.ps1','tests/*.py','docs/*.md','docs/images/*.png','.github/workflows/*.yml']
 SENSITIVE=[r'(?i)[A-Z]:[\\/]Users[\\/](?!Public\b)[^\s"\x27]+',
            r'\bgh[pousr]_[A-Za-z0-9]{20,}\b',r'\bgithub_pat_[A-Za-z0-9_]{20,}\b',
            r'\bsk-(?:proj-|ant-)?[A-Za-z0-9_-]{24,}\b',r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----']
@@ -21,7 +21,7 @@ def files():
 def check(paths):
     issues=[]
     for path in paths:
-        content=path.read_text('utf-8')
+        content=path.read_text('utf-8',errors='ignore')
         for expression in SENSITIVE:
             if re.search(expression,content):issues.append(str(path.relative_to(ROOT)))
     if issues:raise RuntimeError('Potential private data in: '+', '.join(sorted(set(issues))))

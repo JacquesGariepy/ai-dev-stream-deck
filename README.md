@@ -6,6 +6,25 @@ No orchestrator is bundled, installed, cloned or required. Use the harnesses dir
 
 Choose a project, harness and profile, then give the agent an **English objective**. The human interface supports **French and English** independently of the agent protocol. No API key is required by the launcher; each harness uses its own existing account and permissions.
 
+## Screenshots
+
+### Expert cockpit
+
+![AI Dev Expert home page with mission, harness, developer and Windows controls](docs/images/stream-deck-home.png)
+
+| Agentic workflows | Windows controls |
+|---|---|
+| ![Agentic page with plan, implement, review, debug, test, sessions, context, profiles and MCP controls](docs/images/stream-deck-agentic.png) | ![System page with apps, windows, desktops, monitoring, capture, clipboard and settings controls](docs/images/stream-deck-system.png) |
+
+The screenshots show the generated French 15-key MK.2 profile in the Stream Deck desktop application. Labels follow the selected interface language, and available profiles, apps and MCP entries are discovered locally.
+
+<details>
+<summary>View more generated pages</summary>
+
+![Overview of home, developer, agentic, system, Git, editor, run and prompt pages](docs/images/deck-layout-overview.png)
+
+</details>
+
 ## Clean-install defaults
 
 A fresh clone contains no user configuration. The first launch has no selected project, account, browser or orchestrator. Language follows Windows (French/English) until the user chooses otherwise. Configure only the tools you want; detected integrations are optional. Personal settings, account wrappers, credentials, device identities, missions and generated shortcuts remain outside the repository under the current user's private app-data folder. Existing users keep their own local preferences. See [first-run behavior](docs/FIRST-RUN.md).
