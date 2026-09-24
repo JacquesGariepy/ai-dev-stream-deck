@@ -26,8 +26,8 @@ class Panel(Operations, EngineeringUI):
         self.root.report_callback_exception = lambda kind, value, trace: self.error(value.with_traceback(trace))
         self.root.geometry('980x800')
         self.root.minsize(920, 760)
-        self.project = tk.StringVar(value=self.preferences.get('project', str(Path.home())))
-        self.tool = tk.StringVar(value=initial_tool or self.preferences.get('last_tool', 'codex'))
+        self.project = tk.StringVar(value=self.preferences.get('project', ''))
+        self.tool = tk.StringVar(value=initial_tool or self.preferences.get('last_tool', ''))
         self.profile = tk.StringVar()
         self.workflow = 'implement'
         self.objective_value = ''
@@ -210,7 +210,7 @@ class Panel(Operations, EngineeringUI):
         subprocess.Popen([sys.executable, str(Path(__file__).resolve().parent.parent/'launch.py'), '--action','browser'])
 
     def browse(self):
-        selected = filedialog.askdirectory(initialdir=self.project.get(), parent=self.root)
+        selected = filedialog.askdirectory(initialdir=self.project.get() or str(Path.home()), parent=self.root)
         if selected:
             self.project.set(selected)
 

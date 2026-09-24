@@ -37,7 +37,10 @@ def hotkey(title, key, ctrl=False, shift=False, alt=False, win=False, qt=None):
     return action(title,'system.hotkey',{'Coalesce':True,'Hotkeys':[actual,blank,blank,blank]})
 
 
-def generate(output, device, language, links, entries=None):
+def generate(output, device, language, links, entries=None, installed_apps=None):
+    if installed_apps is None:
+        from aidev.desktop import installed_tools
+        installed_apps = installed_tools()
     ids={name:str(uuid.uuid4()) for name in ('profile','home','prompts','editor','web','apps','pinned')}
     label=lambda en,fr:fr if language=='fr' else en
     def opened(title, name, description):
@@ -55,9 +58,6 @@ def generate(output, device, language, links, entries=None):
     pages={
         'home':[
             opened('MISSION','mission','Open the AI Dev control panel to select an installed harness, PowerShell profile and English objective.'),
-            opened('CODEX','codex','Open the control panel with Codex selected.'),
-            opened('CLAUDE','claude','Open the control panel with Claude selected.'),
-            opened('AGY','agy','Open the control panel with AGY selected.'),
             opened(label('PROFILES','PROFILS'),'mission','Inspect detected harnesses and PowerShell profile commands.'),
             opened('ORCH','factory','Open the user-selected external orchestrator, or offer configuration when none is selected. Factory is optional; custom tools use an explicit command or URL.'),
             opened(label('CONTEXT','CONTEXTE'),'context','Capture Git metadata for the selected project. The action starts asynchronously; check the timestamp in the local context/latest.json file.'),
@@ -107,6 +107,7 @@ def generate(output, device, language, links, entries=None):
     unique = {(row['tool'],row['profile'],row['command']):row for row in (entries or [])}
     for row in sorted(unique.values(),key=lambda r:(r['tool'],r['profile'],r['command'])):
         groups.setdefault(row['tool'],[]).append(row)
+    featured = [tool for tool, rows in groups.items() if any(row['available'] for row in rows)][:3]
     tool_folders = {}
     home_folders = {}
     for index, (tool, rows) in enumerate(groups.items()):
@@ -125,16 +126,20 @@ def generate(output, device, language, links, entries=None):
             buttons.append(button)
         paginated(page,buttons,opened(label('PANEL','PANNEAU'),tool if tool in ('codex','claude','agy') else 'mission','Open the mission panel to choose a harness and profile.'))
         tool_folders[tool]=folder(('! ' if not any(row['available'] for row in rows) else '')+tool.upper(),page)
-        if tool in ('codex','claude','agy'):
+        if tool in featured:
             # Native folders are a tree: importing a child with two parents drops a link.
             home_page = page+'-home'
             paginated(home_page,buttons,opened(label('PANEL','PANNEAU'),tool,'Open the mission panel to choose a harness and profile.'))
             home_folders[tool]=folder(tool.upper(),home_page)
     paginated('profiles',list(tool_folders.values()),opened('MISSION','mission','Open the mission panel to choose a harness and profile.'))
-    pages['home'][4]=folder(label('PROFILES','PROFILS'),'profiles')
-    for position, tool in ((1,'codex'),(2,'claude'),(3,'agy')):
-        if tool in home_folders:
-            pages['home'][position]=home_folders[tool]
+    pages['home'][1]=folder(label('PROFILES','PROFILS'),'profiles')
+    # No preferred provider and no empty machine-specific placeholders on a clean install.
+    pages['home'] = [pages['home'][0], *[home_folders[tool] for tool in featured], *pages['home'][1:]]
+    desktop_actions = {'cursor','vscode','orca','monitor','resources','performance','system-info','capture'}
+    for page in ('apps', 'system'):
+        pages[page] = [button for button in pages[page]
+                       if (Path(button['Settings'].get('path','').strip('"')).stem not in desktop_actions
+                           or Path(button['Settings'].get('path','').strip('"')).stem in installed_apps)]
     prefix=ids['profile'].upper()+'.sdProfile'
     output.parent.mkdir(parents=True,exist_ok=True)
     with zipfile.ZipFile(output,'w',zipfile.ZIP_DEFLATED) as archive:
@@ -148,12 +153,29 @@ def generate(output, device, language, links, entries=None):
     return output
 
 
+def select_device(profile_root, identifier=None):
+    devices = {}
+    for manifest in sorted(profile_root.glob('*.sdProfile/manifest.json')):
+        candidate=json.loads(manifest.read_text('utf-8-sig')).get('Device',{})
+        # This layout is qualified for the 15-key device family only.
+        if candidate.get('Model')=='20GBA9901' and candidate.get('UUID'):
+            devices[candidate['UUID']] = candidate
+    if identifier:
+        if identifier not in devices:raise ValueError('Selected compatible Stream Deck was not found.')
+        return devices[identifier]
+    if len(devices) == 1:return next(iter(devices.values()))
+    if not devices:
+        raise RuntimeError('Create a profile for a supported 15-key Stream Deck in Stream Deck first. Other layouts are not yet supported; the desktop app works without a device.')
+    raise ValueError('Multiple compatible devices found. Choose one with --device-id: '+', '.join(devices))
+
+
 def main():
     from aidev.migration import migrate_legacy
     migrate_legacy()
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--language',choices=['auto','en','fr'],default=None)
     parser.add_argument('--import-profile', action='store_true', help='Open the normal Stream Deck import dialog.')
+    parser.add_argument('--device-id', help='Choose a detected device when more than one compatible Stream Deck is configured.')
     args=parser.parse_args()
     links=data_dir()/'stream-deck/Launchers'
     root=Path(__file__).resolve().parents[1]
@@ -163,13 +185,10 @@ def main():
     subprocess.run([powershell(),'-NoProfile','-File',str(Path(__file__).with_name('Create-Shortcuts.ps1')),
                     '-PythonPath',str(pythonw),'-LauncherPath',str(root/'launch.py'),'-OutputDirectory',str(links),'-ProfilesPath',str(selections)],check=True)
     profile_root=Path(os.environ['APPDATA'])/'Elgato/StreamDeck/ProfilesV3'
-    device=None
-    for manifest in sorted(profile_root.glob('*.sdProfile/manifest.json')):
-        candidate=json.loads(manifest.read_text('utf-8-sig')).get('Device',{})
-        if candidate.get('Model')=='20GBA9901':
-            device=candidate;break
-    if not device:
-        raise RuntimeError('Connect a 15-key Stream Deck and create a profile in Stream Deck first. Other models need a layout adapter.')
+    device=select_device(profile_root,args.device_id or settings().get('stream_deck_device'))
+    if args.device_id:
+        from aidev.storage import save_settings
+        config=settings();config['stream_deck_device']=device['UUID'];save_settings(config)
     language = resolve_language(args.language or settings().get('language','auto'))
     output=generate(data_dir()/('stream-deck/AI-Dev-'+language.upper()+'.streamDeckProfile'),device,language,links,entries)
     print(f'Detected {len(entries)} profile entries across {len({r["tool"] for r in entries})} harnesses.')

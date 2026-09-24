@@ -6,10 +6,14 @@ No orchestrator is bundled, installed, cloned or required. Use the harnesses dir
 
 Choose a project, harness and profile, then give the agent an **English objective**. The human interface supports **French and English** independently of the agent protocol. No API key is required by the launcher; each harness uses its own existing account and permissions.
 
+## Clean-install defaults
+
+A fresh clone contains no user configuration. The first launch has no selected project, account, browser or orchestrator. Language follows Windows (French/English) until the user chooses otherwise. Configure only the tools you want; detected integrations are optional. Personal settings, account wrappers, credentials, device identities, missions and generated shortcuts remain outside the repository under the current user's private app-data folder. Existing users keep their own local preferences. See [first-run behavior](docs/FIRST-RUN.md).
+
 ## Requirements
 
 - Windows, Python 3.11+ with Tk, and PowerShell 7 for mission launches.
-- At least one installed AI CLI. Git is optional for context snapshots.
+- An installed AI CLI is needed to launch an AI session. The panel itself opens without one. Git is optional for context snapshots.
 - Stream Deck software and a 15-key device for the supplied hardware layout. The desktop panel works without Stream Deck.
 - Node.js 18+ and npm only if you enable the optional Elgato MCP bridge.
 
@@ -61,15 +65,15 @@ pwsh -File scripts/Install.ps1 -StreamDeck
 
 Import the `.streamDeckProfile` path printed by the installer. It is generated for **your workstation**, with local shortcut paths and the detected device. Never commit that generated archive. It is not a portable binary preset.
 
-The base layout has **74 configured positions across six pages** (including Back buttons): home, Prompts, Editor, AI Web, Apps and System. Additional profile pages are generated from the workstation's detected harnesses and PowerShell commands. It includes optional external orchestration, sessions, project selection, all 14 editor shortcuts, all 14 English prompts, Cursor, VS Code, Orca, capture, CPU/RAM, files, guide, tool diagnostics, Git inspection and logs. See the [complete button map](docs/BUTTONS.md). Agent prompt buttons always insert English text and do not press Enter. Editor shortcuts target the active application. A running session continues when you switch Stream Deck pages.
+The base layout has **up to 74 configured positions across six pages** (including Back buttons): home, Prompts, Editor, AI Web, Apps and System. The count depends on the installed harnesses and desktop applications; absent desktop tools are omitted. Additional profile pages are generated from the workstation's detected harnesses and PowerShell commands. It includes optional external orchestration, sessions, project selection, all 14 editor shortcuts, all 14 English prompts, Cursor, VS Code, Orca, capture, CPU/RAM, files, guide, tool diagnostics, Git inspection and logs. See the [complete button map](docs/BUTTONS.md). Agent prompt buttons always insert English text and do not press Enter. Editor shortcuts target the active application. A running session continues when you switch Stream Deck pages.
 
-**CODEX / CLAUDE / AGY** open their detected profile subpages. **PROFILES** lists every detected harness, including additional tools such as Cursor. Each profile key (for example `CODEX / WORK`) opens the mission panel with that exact command selected, overriding any remembered account. It does not start a paid mission. Default CLI entries are explicitly labeled DEFAULT; unavailable CLI entries have an orange `!` marker. A removed or renamed profile produces an error instead of falling back to another account. Large inventories get MORE subpages; profile selection data stays outside the public source.
+Up to three available harnesses, sorted by name, appear on Home and open their detected profile subpages. No provider is pinned by default. **PROFILES** lists every detected harness, including additional tools such as Cursor. Each profile key (for example `CODEX / WORK`) opens the mission panel with that exact command selected, overriding any remembered account. It does not start a paid mission. Default CLI entries are explicitly labeled DEFAULT; unavailable CLI entries have an orange `!` marker. A removed or renamed profile produces an error instead of falling back to another account. Large inventories get MORE subpages; profile selection data stays outside the public source.
 
 **REFRESH** on a profile page redetects the current PowerShell environment and opens the standard Stream Deck import dialog in that page's language. Install the generated profile to apply added/removed accounts to the hardware. Detection runs at generation and again when a profile is opened; imported physical labels are a snapshot, not a live watcher. Stream Deck may import an updated profile as a separate copy.
 
 The panel language selector updates the interface immediately. **Update Stream Deck: profiles + language** detects profiles, generates an `AI Dev FR` or `AI Dev EN` profile and opens the standard Stream Deck import dialog. Install the generated profile there; once both languages are imported, use Stream Deck's profile selector to switch. Hardware labels are generated at import time, not live synchronized with the panel. Other Stream Deck sizes require a layout adapter; generating a profile does not edit installed profiles.
 
-### Choose Chrome or Edge
+### Choose an installed Chrome, Edge, Firefox or Brave browser
 
 Web buttons use AI Dev's browser launcher instead of the Windows default browser. **Ask before each opening** is enabled by default: choose Chrome or Edge for the active work/personal context, then save and open. No work/browser association is imposed.
 
@@ -107,6 +111,8 @@ A receipt records a prepared/running/exited/launch_error process state. **Activi
 
 Completed or interrupted sessions offer **Prepare next mission**: an English verification or diagnosis objective, with the same project and exact profile when still available. A prepared receipt with no start confirmation after 30 seconds is shown as unconfirmed and offers diagnosis too. You review and launch it explicitly. This does not resume the original provider conversation or automatically retry a failed task.
 
+When several compatible Stream Deck devices are configured, generation requires an explicit selection: `python scripts/stream_deck.py --device-id "<device-id-shown-by-the-tool>"`. That choice is saved only locally. The supplied layout currently supports the 15-key `20GBA9901` model; unsupported models are reported clearly and the desktop app remains usable. Generated device archives must not be published.
+
 ## Optional external orchestrators
 
 In **Orchestrator (optional)**, **Choose orchestrator / Factory** offers **None**, **Factory (external)** and **Custom**. New installations default to None. Existing explicit Factory settings are preserved; choosing None overrides them without deleting the saved installation path. Project folders never implicitly select Factory.
@@ -117,7 +123,7 @@ The **ORCH** key opens the selected external tool; **CONTROL / PILOTAGE** opens 
 
 ### Optional Factory adapter
 
-Choose your existing `agentic-sdlc-factory` installation folder (or use the legacy `AI_DEV_FACTORY` setting). The repository contains only the optional adapter, not Factory source, tasks or dependencies. Its path stays in private local settings. When Factory is selected, **ORCH** starts or reuses its workbench on loopback and opens it through the Chrome/Edge chooser. **CONTROL / PILOTAGE** shows canonical task counts and pending decisions. Refresh reads `autopilot.py status --brief`; it never equates tasks marked executing with live agents.
+Choose your existing `agentic-sdlc-factory` installation folder (or use the legacy `AI_DEV_FACTORY` setting). The repository contains only the optional adapter, not Factory source, tasks or dependencies. Its path stays in private local settings. When Factory is selected, **ORCH** starts or reuses its workbench on loopback and opens it through the browser chooser. **CONTROL / PILOTAGE** shows canonical task counts and pending decisions. Refresh reads `autopilot.py status --brief`; it never equates tasks marked executing with live agents.
 
 The integration uses the Factory installation's virtual environment when present. It verifies the workbench's package identity, never takes over an unrelated service, and starts it with `127.0.0.1` binding. The workbench remains running after the panel closes. Logs are private under `factory/workbench.log`. Its native Git-health supervisor also runs as part of the existing workbench.
 

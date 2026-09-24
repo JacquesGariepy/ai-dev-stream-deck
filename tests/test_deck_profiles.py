@@ -57,7 +57,8 @@ class DeckProfileTests(unittest.TestCase):
             for row in rows:
                 expected='profile-'+selection_id(row)+'.lnk'
                 matches=[a for a in actions if expected in a['Settings'].get('path','')]
-                self.assertEqual(len(matches),2 if row['tool'] in ('codex','claude','agy') else 1,expected)
+                featured=sorted({r['tool'] for r in rows if r['available']})[:3]
+                self.assertEqual(len(matches),2 if row['tool'] in featured else 1,expected)
                 if not row['available']:
                     self.assertTrue(matches[0]['States'][0]['Title'].startswith('!'))
             self.assertTrue(any('deck-refresh-fr.lnk' in a['Settings'].get('path','') for a in actions))

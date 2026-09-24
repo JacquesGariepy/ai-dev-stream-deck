@@ -130,7 +130,9 @@ Set-Alias codex-fixture-alias codex-fixture
     def test_stream_deck_export_has_subpages_and_english_prompts(self):
         spec=importlib.util.spec_from_file_location('deck_generator',ROOT/'scripts/stream_deck.py')
         module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
-        output=module.generate(self.path/'deck.streamDeckProfile',{'Model':'test-device'},'fr',self.path/'links')
+        rows=[{'tool':tool,'profile':'default','command':tool,'kind':'application','available':True} for tool in ('codex','claude','agy')]
+        output=module.generate(self.path/'deck.streamDeckProfile',{'Model':'test-device'},'fr',self.path/'links',rows,
+                               installed_apps={'cursor','vscode','orca','monitor','resources','performance','system-info','capture'})
         with zipfile.ZipFile(output) as archive:
             manifests=[json.loads(archive.read(name)) for name in archive.namelist() if name.endswith('manifest.json')]
             page_names={m.get('Name') for m in manifests}

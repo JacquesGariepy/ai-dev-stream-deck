@@ -18,6 +18,8 @@ def installed_browsers():
                    programs86/'Google/Chrome/Application/chrome.exe', local/'Google/Chrome/Application/chrome.exe'],
         'edge': [shutil.which('msedge'), programs86/'Microsoft/Edge/Application/msedge.exe',
                  programs/'Microsoft/Edge/Application/msedge.exe', local/'Microsoft/Edge/Application/msedge.exe'],
+        'firefox': [shutil.which('firefox'), programs/'Mozilla Firefox/firefox.exe', programs86/'Mozilla Firefox/firefox.exe', local/'Mozilla Firefox/firefox.exe'],
+        'brave': [shutil.which('brave'), programs/'BraveSoftware/Brave-Browser/Application/brave.exe', local/'BraveSoftware/Brave-Browser/Application/brave.exe'],
     }
     return {name: str(found) for name, paths in candidates.items()
             if (found := next((path for path in paths if path and Path(path).is_file()), None))}
@@ -86,7 +88,7 @@ def browser_dialog(url=None, context=None):
     ttk.Label(panel,text=text('browsers'),font=('Segoe UI',18,'bold')).pack(anchor='w')
     ttk.Label(panel,text=text('browser_note'),wraplength=530).pack(anchor='w',pady=12)
     installed=installed_browsers()
-    labels={'edge':'Edge','chrome':'Chrome'}
+    labels={'edge':'Edge','chrome':'Chrome','firefox':'Firefox','brave':'Brave'}
     existing=config.get('web',{})
     variables={}
     for key in CONTEXTS:

@@ -6,7 +6,7 @@ import subprocess
 from .storage import settings
 
 
-def open_tool(name):
+def installed_tools():
     local = Path(os.environ.get('LOCALAPPDATA', Path.home()))
     programs = Path(os.environ.get('ProgramFiles', 'C:/Program Files'))
     locations = {
@@ -20,7 +20,12 @@ def open_tool(name):
         'capture': [Path(shutil.which('SnippingTool') or local/'Microsoft/WindowsApps/SnippingTool.exe'),
                     Path(os.environ.get('WINDIR', 'C:/Windows'))/'System32/SnippingTool.exe'],
     }
-    executable = next((p for p in locations[name] if p.is_file()), None)
+    return {name: str(executable) for name, paths in locations.items()
+            if (executable := next((p for p in paths if p.is_file()), None))}
+
+
+def open_tool(name):
+    executable = installed_tools().get(name)
     if not executable:
         raise FileNotFoundError(f'{name}: application not installed in a supported location.')
     args = [str(executable)]

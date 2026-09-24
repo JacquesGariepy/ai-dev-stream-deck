@@ -24,7 +24,9 @@ function Get-AIDevCatalog {
             $rows += [pscustomobject]@{tool=$tool;profile='default';command=$executable;executable=$executable;available=$true;initialized=$true;kind='application';directory=$null}
         }
     }
-    if (Get-Command Invoke-AiProfile -ErrorAction SilentlyContinue) {
+    if ((Get-Command Invoke-AiProfile -ErrorAction SilentlyContinue) -and
+        (Get-Command Resolve-AiExecutable -ErrorAction SilentlyContinue) -and
+        (Get-Command Get-AiProfileDir -ErrorAction SilentlyContinue)) {
         foreach ($candidate in Get-Command -CommandType Function,Alias) {
             $resolved = $candidate
             if ($candidate.CommandType -eq 'Alias') { $resolved = $candidate.ResolvedCommand }

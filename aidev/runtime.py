@@ -27,6 +27,7 @@ def git_read(project, *args):
 
 
 def capture_context(project, identifier=None):
+    if not str(project).strip():raise ValueError('Choose a project folder first.')
     project = Path(project).expanduser().resolve(strict=True)
     if not project.is_dir():
         raise ValueError('Project must be a directory.')
@@ -45,6 +46,7 @@ def capture_context(project, identifier=None):
 
 
 def prepare(entry, project, workflow, objective='', english_confirmed=False):
+    if not str(project).strip():raise ValueError('Choose a project folder first.')
     if not entry or not entry['available']:
         raise ValueError('Choose an available harness and profile.')
     identifier = str(uuid.uuid4())
