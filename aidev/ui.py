@@ -18,16 +18,11 @@ class Panel(Operations, EngineeringUI):
         self.language = resolve_language(self.preference)
         self.catalog_error = None
         self.catalog = {'entries':[]}
-        if initial_tab == 'mission':
-            try:self.catalog = discover()
-            except Exception as error:self.catalog_error = str(error)
-        selected_entry = None
-        if initial_selection:
-            selected_entry = find_entry(self.catalog, initial_selection['tool'], initial_selection['profile'], initial_selection['command'])
-            if selected_entry is None:
-                raise ValueError(tr('profile_removed', self.language))
-            initial_tool = selected_entry['tool']
+        self.initial_selection = initial_selection
+        self.discovery_attempted = False
+        if initial_selection: initial_tool = initial_selection['tool']
         self.root = tk.Tk()
+        self.root.bind('<Destroy>', self.cancel_callbacks, add='+')
         self.root.report_callback_exception = lambda kind, value, trace: self.error(value.with_traceback(trace))
         self.root.geometry('980x800')
         self.root.minsize(920, 760)
@@ -37,17 +32,22 @@ class Panel(Operations, EngineeringUI):
         self.workflow = 'implement'
         self.objective_value = ''
         self.render()
-        if selected_entry:
-            self.profile.set(next(label for label, row in self.profile_rows.items() if row == selected_entry))
-            self.update_status()
         self.notebook.select({'mission':self.mission_frame, 'activity':self.activity_frame, 'factory':self.factory_frame,'engineering':self.engineering_frame}[initial_tab])
         if initial_tab == 'factory':
             self.refresh_factory()
+        elif initial_tab == 'mission':
+            self.refresh()
         self.root.after(4000, self.tick)
 
     def tick(self):
         try:self.refresh_activity()
         finally:self.root.after(4000, self.tick)
+
+    def cancel_callbacks(self, event):
+        if event.widget is not self.root:return
+        for identifier in self.root.tk.call('after', 'info'):
+            try:self.root.after_cancel(identifier)
+            except tk.TclError:pass
 
     def text(self, key):
         return tr(key, self.language)
@@ -58,6 +58,8 @@ class Panel(Operations, EngineeringUI):
         for child in self.root.winfo_children():
             child.destroy()
         self.root.title(self.text('title'))
+        if self.initial_selection:
+            self.root.title(self.text('title')+' — '+self.initial_selection['tool']+' / '+self.initial_selection['profile'])
         frame = ttk.Frame(self.root, padding=22)
         frame.pack(fill='both', expand=True)
         ttk.Label(frame, text=self.text('heading'), font=('Segoe UI', 19, 'bold')).pack(anchor='w')
@@ -97,7 +99,7 @@ class Panel(Operations, EngineeringUI):
         ttk.Button(project_row, text=self.text('browse'), command=self.browse).pack(side='right', padx=(8, 0))
         choices = ttk.Frame(frame); choices.pack(fill='x')
         tools = sorted({entry['tool'] for entry in self.catalog['entries']})
-        if self.tool.get() not in tools:
+        if tools and self.tool.get() not in tools:
             self.tool.set(tools[0] if tools else '')
         columns = [(self.text('harness'), self.tool), (self.text('profile'), self.profile)]
         boxes = []
@@ -108,8 +110,12 @@ class Panel(Operations, EngineeringUI):
             box.pack(fill='x', pady=4); boxes.append(box)
         self.tool_box, self.profile_box = boxes
         self.tool_box['values'] = tools
-        self.tool_box.bind('<<ComboboxSelected>>', lambda _: self.update_profiles())
-        self.profile_box.bind('<<ComboboxSelected>>', lambda _: self.update_status())
+        def manual_selection(_):
+            self.initial_selection = None
+            self.catalog_error = None
+            self.update_profiles()
+        self.tool_box.bind('<<ComboboxSelected>>', manual_selection)
+        self.profile_box.bind('<<ComboboxSelected>>', manual_selection)
         flow_column = ttk.Frame(choices); flow_column.pack(side='left')
         ttk.Label(flow_column, text=self.text('workflow')).pack(anchor='w')
         self.flow_box = ttk.Combobox(flow_column, state='readonly', values=[self.text(key) for key in WORKFLOWS], width=19)
@@ -127,14 +133,15 @@ class Panel(Operations, EngineeringUI):
         bottom = ttk.Frame(frame); bottom.pack(fill='x', pady=6)
         ttk.Button(bottom, text=self.text('sessions'), command=lambda: self.notebook.select(self.activity_frame)).pack(side='left')
         ttk.Button(bottom, text=self.text('context'), command=self.context).pack(side='left', padx=8)
-        ttk.Button(bottom, text=self.text('open'), command=lambda: self.submit(False)).pack(side='right')
+        self.open_button = ttk.Button(bottom, text=self.text('open'), command=lambda: self.submit(False))
+        self.open_button.pack(side='right')
         self.launch_button = ttk.Button(bottom, text=self.text('launch'), command=lambda: self.submit(True))
         self.launch_button.pack(side='right', padx=8)
         self.update_profiles()
         self.notebook.bind('<<NotebookTabChanged>>',self.tab_changed)
 
     def tab_changed(self, _):
-        if self.notebook.select()==str(self.mission_frame) and not self.catalog['entries'] and not self.catalog_error and not getattr(self,'detecting',False):
+        if self.notebook.select()==str(self.mission_frame) and not self.discovery_attempted and not getattr(self,'detecting',False):
             self.refresh()
 
     def rows(self):
@@ -158,16 +165,23 @@ class Panel(Operations, EngineeringUI):
         if row:
             key = 'missing' if not row['available'] else ('uninitialized' if row['initialized'] is False else 'ready')
         value = self.text(key)
+        if getattr(self,'detecting',False): value = self.text('detecting_profiles')
         if self.catalog_error:value += '\n'+self.catalog_error
         adapter = self.tool.get() in MISSION_ADAPTERS
         if not adapter and self.tool.get():
             value += '\n' + self.text('unknown_adapter')
         self.status.configure(text=value)
-        self.launch_button.configure(state='normal' if row and row['available'] and adapter else 'disabled')
+        ready = row and row['available'] and not getattr(self,'detecting',False) and not self.catalog_error
+        self.launch_button.configure(state='normal' if ready and adapter else 'disabled')
+        self.open_button.configure(state='normal' if ready else 'disabled')
+        for box in (self.tool_box, self.profile_box):
+            box.configure(state='disabled' if getattr(self,'detecting',False) else 'readonly')
 
     def refresh(self):
         if getattr(self,'detecting',False):return
         self.detecting=True
+        self.discovery_attempted=True
+        self.update_status()
         def completed(ok,result):
             self.detecting=False
             if ok:
@@ -175,6 +189,14 @@ class Panel(Operations, EngineeringUI):
                 self.catalog_error=None
                 tab=self.notebook.index(self.notebook.select())
                 self.render()
+                if self.initial_selection:
+                    wanted=self.initial_selection
+                    row=find_entry(self.catalog,wanted['tool'],wanted['profile'],wanted['command'])
+                    self.tool.set(wanted['tool'])
+                    self.update_profiles()
+                    self.profile.set(next((label for label, entry in self.profile_rows.items() if entry == row), ''))
+                    if row is None:self.catalog_error=self.text('profile_removed')
+                    self.update_status()
                 self.notebook.select(tab)
             else:
                 self.catalog_error=str(result)
@@ -201,6 +223,8 @@ class Panel(Operations, EngineeringUI):
 
     def submit(self, with_objective):
         try:
+            if getattr(self,'detecting',False) or self.catalog_error:
+                raise ValueError(self.catalog_error or self.text('detecting_profiles'))
             row = self.profile_rows.get(self.profile.get())
             if not row or not row['available']:
                 raise ValueError(self.text('select'))

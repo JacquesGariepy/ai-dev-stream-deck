@@ -3,6 +3,7 @@ import locale
 import os
 
 STRINGS = {
+    'detecting_profiles': ('Detecting installed tools and PowerShell profiles… This can take up to 40 seconds.', 'Détection des outils et profils PowerShell… Cela peut prendre jusqu’à 40 secondes.'),
     'orchestrator_none': ('None', 'Aucun'),
     'orchestrator_factory': ('Factory (external)', 'Factory (externe)'),
     'orchestrator_custom': ('Custom (OpenClaw, AX, other)', 'Personnalisé (OpenClaw, AX, autre)'),

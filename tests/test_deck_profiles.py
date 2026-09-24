@@ -65,6 +65,7 @@ class DeckProfileTests(unittest.TestCase):
 
     @unittest.skipUnless(os.name=='nt','Windows Tk interface')
     def test_exact_button_overrides_remembered_account_and_missing_button_fails(self):
+        import time
         from aidev.ui import Panel
         from aidev.storage import save_settings
         with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ, {'AI_DEV_DATA_DIR':folder}):
@@ -74,10 +75,22 @@ class DeckProfileTests(unittest.TestCase):
                 panel=Panel(initial_selection=rows[0])
                 try:
                     panel.root.withdraw()
+                    deadline=time.monotonic()+3
+                    while panel.detecting and time.monotonic()<deadline:
+                        panel.root.update();time.sleep(.02)
                     self.assertEqual(panel.profile_rows[panel.profile.get()]['command'],'codex-work')
                 finally:panel.root.destroy()
             with patch('aidev.ui.discover',return_value={'entries':[rows[1]]}):
-                with self.assertRaises(ValueError): Panel(initial_selection=rows[0])
+                panel=Panel(initial_selection=rows[0])
+                try:
+                    panel.root.withdraw()
+                    deadline=time.monotonic()+3
+                    while panel.detecting and time.monotonic()<deadline:
+                        panel.root.update();time.sleep(.02)
+                    self.assertEqual(panel.profile.get(),'')
+                    self.assertEqual(str(panel.open_button['state']),'disabled')
+                    self.assertEqual(panel.catalog_error,panel.text('profile_removed'))
+                finally:panel.root.destroy()
 
 
 if __name__=='__main__':unittest.main()

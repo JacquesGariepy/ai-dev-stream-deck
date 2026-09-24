@@ -31,11 +31,8 @@ def main():
                     command += ['--language',args.deck_language]
                 subprocess.run(command, check=True)
         except Exception as error:
-            from tkinter import Tk, messagebox
-            from .i18n import tr, resolve_language
-            root = Tk(); root.withdraw()
-            messagebox.showerror(tr('error',resolve_language(settings().get('language','auto'))), str(error), parent=root)
-            root.destroy()
+            from .errors import report
+            report(error)
     elif args.action in ('browser','web','web-work','web-personal'):
         from .browsers import browser_dialog, open_website, select_context, validate_url
         if args.action == 'web':

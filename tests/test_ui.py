@@ -3,12 +3,37 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+import time
 from unittest.mock import patch
 from aidev.storage import data_dir, save_json
 
 
 @unittest.skipUnless(os.name == 'nt', 'Windows Tk interface')
 class PanelTests(unittest.TestCase):
+    def test_window_is_ready_while_profile_discovery_is_blocked(self):
+        import threading
+        from aidev.ui import Panel
+        gate=threading.Event()
+        entry={'tool':'claude','profile':'personal','command':'claude-personal','kind':'powershell','available':True,'initialized':True}
+        def slow_discovery():
+            gate.wait(4)
+            return {'entries':[entry]}
+        with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ,{'AI_DEV_DATA_DIR':folder}), patch('aidev.ui.discover',side_effect=slow_discovery):
+            panel=Panel(initial_selection=entry)
+            try:
+                panel.root.withdraw();panel.root.update()
+                self.assertTrue(panel.detecting)
+                self.assertIn('claude / personal',panel.root.title())
+                self.assertEqual(panel.status['text'],panel.text('detecting_profiles'))
+                self.assertEqual(str(panel.open_button['state']),'disabled')
+                gate.set()
+                deadline=time.monotonic()+3
+                while panel.detecting and time.monotonic()<deadline:
+                    panel.root.update();time.sleep(.02)
+                self.assertEqual(panel.profile.get(),'claude-personal')
+                self.assertEqual(str(panel.open_button['state']),'normal')
+            finally:gate.set();panel.root.destroy()
+
     def test_language_followup_and_launch_keep_control_panel_open(self):
         from aidev.ui import Panel
         with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ, {'AI_DEV_DATA_DIR':folder}):
@@ -17,6 +42,9 @@ class PanelTests(unittest.TestCase):
             save_json(data_dir()/'missions/previous.json', {'id':'previous','tool':'codex','profile':'work','command':'codex-work','project':folder,'objective':'Fix the parser.','status':'exited','exit_code':0})
             with patch('aidev.ui.discover', return_value={'entries':[entry]}):
                 panel=Panel()
+                deadline=time.monotonic()+3
+                while panel.detecting and time.monotonic()<deadline:
+                    panel.root.update();time.sleep(.02)
             try:
                 panel.root.withdraw()
                 panel.root.update()
