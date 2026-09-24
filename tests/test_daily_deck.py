@@ -27,6 +27,14 @@ class DailyDeckTests(unittest.TestCase):
                 self.assertEqual(media[179],0x01000086)
                 self.assertEqual(media[173],0x01000071)
                 self.assertFalse(any('spotify.lnk' in a['Settings'].get('path','') for a in actions))
+                desktop=next(p for p in pages.values() if p['Name']=='desktop')
+                desktop_actions=list(desktop['Controllers'][0]['Actions'].values())
+                display_mode=next(a for a in desktop_actions if a['Name']=='MODE ECRAN')
+                self.assertTrue(display_mode['Settings']['Hotkeys'][0]['KeyCmd'])
+                self.assertEqual(display_mode['Settings']['Hotkeys'][0]['NativeCode'],80)
+                self.assertTrue(any(a['Name']=='ECRAN GAUCHE' and a['Settings']['Hotkeys'][0]['KeyShift'] for a in desktop_actions))
+                report=deck.audit_profile(archive)
+                self.assertEqual(report['buttons'],sum(len(p['Controllers'][0]['Actions'] or {}) for p in pages.values()))
                 for filename,page in pages.items():
                     for controller in page['Controllers']:
                         for button in (controller['Actions'] or {}).values():

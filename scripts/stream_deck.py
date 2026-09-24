@@ -38,6 +38,60 @@ def hotkey(title, key, ctrl=False, shift=False, alt=False, win=False, qt=None):
     return action(title,'system.hotkey',{'Coalesce':True,'Hotkeys':[actual,blank,blank,blank]})
 
 
+def audit_profile(path, shortcuts=None):
+    """Inspect every generated key without executing it."""
+    with zipfile.ZipFile(path) as archive:
+        names=set(archive.namelist())
+        manifests=[name for name in names if name.endswith('/manifest.json')]
+        roots=[name for name in manifests if '/Profiles/' not in name]
+        if len(roots)!=1:raise ValueError('Profile archive must contain one root manifest.')
+        root=json.loads(archive.read(roots[0]))
+        pages={name.rsplit('/',2)[1].upper():(name,json.loads(archive.read(name)))
+               for name in manifests if '/Profiles/' in name}
+        current=root['Pages']['Current'].upper();default=root['Pages']['Default'].upper()
+        if current not in pages or default not in pages:raise ValueError('Profile root refers to a missing page.')
+        supported={'com.elgato.streamdeck.system.open','com.elgato.streamdeck.profile.openchild',
+                   'com.elgato.streamdeck.profile.backtoparent','com.elgato.streamdeck.system.hotkey',
+                   'com.elgato.streamdeck.system.text'}
+        visited=set();action_ids=set();folder_targets=[]
+        counts={'pages':0,'buttons':0,'open':0,'folders':0,'hotkeys':0,'text':0}
+        def inspect_page(identifier):
+            if identifier in visited:return
+            visited.add(identifier);name,page=pages[identifier];counts['pages']+=1
+            actions=[button for controller in page.get('Controllers',[]) for button in (controller.get('Actions') or {}).values()]
+            if len(actions)>15:raise ValueError('A page exceeds the 15-key layout: '+page.get('Name',''))
+            for button in actions:
+                counts['buttons']+=1
+                if button.get('UUID') not in supported:raise ValueError('Unsupported key action: '+str(button.get('UUID')))
+                action_id=button.get('ActionID')
+                if not action_id or action_id in action_ids:raise ValueError('Missing or duplicate key ActionID.')
+                action_ids.add(action_id)
+                states=button.get('States') or []
+                if not states or not states[0].get('Title'):raise ValueError('A key has no visible label.')
+                image_name=name.rsplit('/',1)[0]+'/'+states[0].get('Image','')
+                if image_name not in names or not archive.read(image_name).startswith(b'\x89PNG'):
+                    raise ValueError('A key icon is missing or invalid.')
+                kind=button['UUID'].rsplit('.',1)[-1]
+                if kind=='open':
+                    counts['open']+=1
+                    target=button.get('Settings',{}).get('path','').strip('"')
+                    if not target or not button.get('UserInput'):raise ValueError('An Open key is incomplete.')
+                    if shortcuts is not None and not Path(target).is_file():raise ValueError('Missing local shortcut: '+Path(target).name)
+                elif kind=='openchild':
+                    counts['folders']+=1;target=button.get('Settings',{}).get('ProfileUUID','').upper()
+                    if target not in pages:raise ValueError('A folder key refers to a missing page.')
+                    folder_targets.append(target);inspect_page(target)
+                elif kind=='hotkey':
+                    counts['hotkeys']+=1
+                    if len(button.get('Settings',{}).get('Hotkeys',[]))!=4:raise ValueError('A hotkey is incomplete.')
+                elif kind=='text':counts['text']+=1
+        inspect_page(current)
+        if len(folder_targets)!=len(set(folder_targets)):raise ValueError('A native folder has more than one parent.')
+        orphan=set(pages)-visited-{default}
+        if orphan:raise ValueError('Unreachable generated pages: '+', '.join(sorted(orphan)))
+        return counts
+
+
 def generate(output, device, language, links, entries=None, installed_apps=None, desktop_entries=None, mcp_entries=None):
     if installed_apps is None:
         from aidev.desktop import installed_tools
@@ -217,13 +271,25 @@ def generate(output, device, language, links, entries=None, installed_apps=None,
                       hotkey(label('SEARCH','RECHERCHE'),83,win=True),hotkey('EMOJI',190,win=True,qt=46),
                       hotkey(label('TASK VIEW','VUE TACHES'),9,win=True,qt=16777217),
                       hotkey(label('LOCK','VERROU'),76,win=True),opened(label('SERVICES','SERVICES'),'windows-services','Inspect Windows services.')]
+    pages['desktop']=[back,hotkey(label('SHOW\nDESKTOP','AFFICHER'),68,win=True),
+                      hotkey(label('TASK\nVIEW','VUE\nTACHES'),9,win=True,qt=16777217),
+                      hotkey(label('DISPLAY\nMODE','MODE\nECRAN'),80,win=True),
+                      opened(label('DISPLAY','AFFICHAGE'),'windows-display','Open Windows display settings to identify and arrange monitors.'),
+                      hotkey(label('NEW\nDESKTOP','NOUV.\nBUREAU'),68,ctrl=True,win=True),
+                      hotkey(label('PREV\nDESKTOP','BUREAU\nPREC.'),37,ctrl=True,win=True,qt=16777234),
+                      hotkey(label('NEXT\nDESKTOP','BUREAU\nSUIV.'),39,ctrl=True,win=True,qt=16777236),
+                      hotkey(label('CLOSE\nDESKTOP','FERMER\nBUREAU'),115,ctrl=True,win=True,qt=16777267),
+                      hotkey(label('MOVE\nLEFT','ECRAN\nGAUCHE'),37,shift=True,win=True,qt=16777234),
+                      hotkey(label('MOVE\nRIGHT','ECRAN\nDROIT'),39,shift=True,win=True,qt=16777236),
+                      hotkey(label('MINIMIZE','MINIMISER'),77,win=True),
+                      hotkey(label('RESTORE','RESTAURER'),77,shift=True,win=True)]
     # Daily home is generic; media applications are in the detected app catalog.
     pages['home']=[folder('DEV','dev'),folder('AGENTIC','agentic'),folder(label('APPS','APPS'),'daily-apps'),folder('WINDOWS','windows'),
                     opened(label('BROWSER','NAVIGATEUR'),'browser-open','Choose a browser.'),opened(label('FILES','FICHIERS'),'files','Open project files or the home directory.'),
                     opened('PHOTO\nVIDEO','capture','Open Snipping Tool; recording starts only by user action.'),folder(label('MEDIA','MEDIA'),'media'),
                     hotkey(label('CLIPBOARD','PRESSE-PAP.'),86,win=True),opened(label('CALCULATOR','CALC'),'windows-calculator','Open Windows Calculator.'),
                     opened(label('NOTEPAD','BLOC-NOTES'),'windows-notepad','Open Notepad.'),folder('CPU / RAM','system-home'),
-                    hotkey(label('DESKTOP','BUREAU'),68,win=True),opened(label('SETTINGS','REGLAGES'),'windows-settings','Open Windows Settings.'),
+                    folder(label('DESKTOP','BUREAU'),'desktop'),opened(label('SETTINGS','REGLAGES'),'windows-settings','Open Windows Settings.'),
                     opened(label('REFRESH','ACTUALISER'),'deck-refresh-'+language,'Rescan this workstation and open the regenerated profile for import.')]
     if 'capture' not in installed_apps:pages['home']=[b for b in pages['home'] if b['Name']!='PHOTO VIDEO']
     prefix=ids['profile'].upper()+'.sdProfile'
@@ -244,6 +310,7 @@ def generate(output, device, language, links, entries=None, installed_apps=None,
             write(path+'/manifest.json',{'Name':page,'Icon':'','Controllers':[{'Type':'Keypad','Actions':{f'{i%5},{i//5}':dict(a,ActionID=str(uuid.uuid4())) for i,a in enumerate(actions)}}]})
             for filename,content in icons.items():archive.writestr(prefix+'/'+path+'/Images/'+filename,content)
         write('Profiles/'+ids['pinned'].upper()+'/manifest.json',{'Name':'','Icon':'','Controllers':[{'Type':'Keypad','Actions':None}]})
+    audit_profile(output)
     return output
 
 
@@ -292,8 +359,10 @@ def main():
         config=settings();config['stream_deck_device']=device['UUID'];save_settings(config)
     language = resolve_language(args.language or settings().get('language','auto'))
     output=generate(data_dir()/('stream-deck/AI-Dev-'+language.upper()+'.streamDeckProfile'),device,language,links,entries,desktop_entries=desktop_entries,mcp_entries=mcp_entries)
+    audit=audit_profile(output,links)
     print(f'Detected {len(desktop_entries)} desktop applications and {len(mcp_entries)} MCP declarations. Connections are not checked.')
     print(f'Detected {len(entries)} profile entries across {len({r["tool"] for r in entries})} harnesses.')
+    print(f'Audited {audit["buttons"]} keys across {audit["pages"]} reachable pages; all local shortcuts and icons are present.')
     print('Import this local file in Stream Deck (do not commit it): '+str(output))
     if args.import_profile:
         os.startfile(output)

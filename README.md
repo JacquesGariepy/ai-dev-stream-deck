@@ -65,7 +65,7 @@ pwsh -File scripts/Install.ps1 -StreamDeck
 
 Import the `.streamDeckProfile` path printed by the installer. It is generated for **your workstation**, with local shortcut paths and the detected device. Never commit that generated archive. It is not a portable binary preset.
 
-The first page is a general-purpose **Daily** desk: DEV, AGENTIC, detected applications, Windows tools, browser chooser, files, photo/video, media controls, clipboard history, Calculator, Notepad, CPU/RAM tools, desktop, settings and refresh. Spotify is one detected application rather than a required dependency. Multimedia keys target the active Windows media session; no media account or plugin is bundled. Capture is omitted when Snipping Tool is unavailable.
+The first page is a general-purpose **Daily** desk: DEV, AGENTIC, detected applications, Windows tools, browser chooser, files, photo/video, media controls, clipboard history, Calculator, Notepad, CPU/RAM tools, desktop, settings and refresh. **Desktop / Bureau** opens display selection, monitor arrangement, virtual-desktop navigation, window movement between monitors and show/minimize/restore controls. Spotify is one detected application rather than a required dependency. Multimedia keys target the active Windows media session; no media account or plugin is bundled. Capture is omitted when Snipping Tool is unavailable.
 
 **DEV** is workstation-first: it features up to four useful installed tools such as Docker Desktop, GitHub Desktop, Visual Studio Code, Cursor or Postman directly on the page. **DEV APPS** contains every detected development application. Terminal choice, editor shortcuts, Git, project selection, diagnostics, common debugging keys and real project tasks read from package, Python, Compose and Make manifests remain available. Opening the task list runs nothing; the user explicitly selects a task. **AGENTIC** groups missions, detected harness/account profiles, sessions, English prompts, installed AI desktop apps such as Claude Desktop and ChatGPT Desktop, local MCP declarations and the optional external orchestrator. Each folder has a working Back key.
 
@@ -74,6 +74,8 @@ Up to three available harnesses, sorted by name, appear in AGENTIC. **PROFILES**
 The MCP inventory reads known Codex, Claude Desktop, Claude Code, Cursor, VS Code, Windsurf, selected-project and user-added JSON/JSONC/TOML configuration files. It creates one inspection key per declaration without retaining command arguments, URLs, environment variables or headers. It does not start a server or claim that its connection and tools work.
 
 Icons are generated from original code, packaged inside the local profile and require no downloaded icon pack or extra Python library. Labels follow the selected FR/EN language. Keyboard shortcuts target the active application; English prompt buttons insert text without pressing Enter. See the [complete button map](docs/BUTTONS.md).
+
+Generation audits every key before import: all pages must be reachable, native folders must have one parent, action identifiers must be unique, icons must be valid PNG files and every Open key must point to a generated local shortcut. The audit does not execute applications, lock Windows, switch displays or run project tasks.
 
 ## Choose an installed Chrome, Edge, Firefox or Brave browser
 
