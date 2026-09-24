@@ -45,7 +45,7 @@ class OperationsTests(unittest.TestCase):
             self.assertEqual(factory.brief()['decisions_pending'][0]['blocks'], 'run')
         args = call.call_args.args[0]
         self.assertEqual(args[-2:], ['status','--brief'])
-        self.assertEqual(args[args.index('--root')+1], str(self.package))
+        self.assertEqual(Path(args[args.index('--root')+1]).resolve(), self.package.resolve())
 
     def test_existing_workbench_reused_without_launch(self):
         factory.configure(self.package)
@@ -76,6 +76,10 @@ class OperationsTests(unittest.TestCase):
         self.assertEqual(rows[0]['outcome'],'unverified')
         self.assertIsNone(rows[0]['tokens'])
         self.assertEqual(json.loads(path.read_text())['status'],'running')
+
+    def test_old_prepared_receipt_does_not_claim_an_active_terminal(self):
+        save_json(data_dir()/'missions/unconfirmed.json', {'id':'unconfirmed','status':'prepared','created':'2000-01-01T00:00:00+00:00'})
+        self.assertEqual(receipts()[0]['observed_status'],'unconfirmed')
 
 
 if __name__ == '__main__': unittest.main()

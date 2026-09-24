@@ -89,7 +89,7 @@ Git snapshots contain metadata only: status, diff statistics and recent commit s
 
 A receipt records a prepared/running/exited/launch_error process state. **Activity & next actions** refreshes every four seconds and shows the selected session's objective, exit code and available error evidence. The panel stays open after launch. When a recorded runner no longer exists, the UI marks it interrupted without rewriting the original receipt. PID checks cannot prove objective completion and a reused PID can make an old receipt appear active. `exited` does not mean the objective succeeded. Costs and tokens remain unmeasured.
 
-Completed or interrupted sessions offer **Prepare next mission**: an English verification or diagnosis objective, with the same project and exact profile when still available. You review and launch it explicitly. This does not resume the original provider conversation or automatically retry a failed task.
+Completed or interrupted sessions offer **Prepare next mission**: an English verification or diagnosis objective, with the same project and exact profile when still available. A prepared receipt with no start confirmation after 30 seconds is shown as unconfirmed and offers diagnosis too. You review and launch it explicitly. This does not resume the original provider conversation or automatically retry a failed task.
 
 ## Factory integration
 
