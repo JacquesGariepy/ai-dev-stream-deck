@@ -135,7 +135,18 @@ Set-Alias codex-fixture-alias codex-fixture
             manifests=[json.loads(archive.read(name)) for name in archive.namelist() if name.endswith('manifest.json')]
             page_names={m.get('Name') for m in manifests}
             self.assertTrue({'home','prompts','editor','web'}.issubset(page_names))
+            for manifest in manifests:
+                for controller in manifest.get('Controllers',[]):
+                    self.assertLessEqual(len(controller.get('Actions') or {}),15)
+            editor=next(m for m in manifests if m.get('Name')=='editor')
+            self.assertEqual(len(editor['Controllers'][0]['Actions']),15)
             actions=[a for m in manifests for c in m.get('Controllers',[]) for a in (c.get('Actions') or {}).values()]
+            for launcher in ('cursor','vscode','orca','monitor','factory','factory-status','files','guide','status','mission','codex','claude','agy'):
+                self.assertTrue(any((launcher+'.lnk') in a['Settings'].get('path','') for a in actions),launcher)
+            keys=[a['Settings']['Hotkeys'][0] for a in actions if a['UUID'].endswith('system.hotkey')]
+            self.assertTrue(any(k['KeyCmd'] and k['KeyShift'] and k['NativeCode']==83 for k in keys))
+            self.assertTrue(any(k['NativeCode']==113 and k['QTKeyCode']==16777265 for k in keys))
+            self.assertTrue(any(k['NativeCode']==123 and k['QTKeyCode']==16777275 for k in keys))
             self.assertFalse(any(a['UUID'].endswith('system.website') for a in actions))
             web=next(m for m in manifests if m.get('Name')=='web')
             web_actions=web['Controllers'][0]['Actions'].values()

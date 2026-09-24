@@ -11,7 +11,7 @@ def main():
     parser.add_argument('--tool', help='Preselect a detected harness.')
     parser.add_argument('--url', help='HTTP(S) URL for an explicit browser launch.')
     parser.add_argument('--web-context', choices=['work','personal'])
-    parser.add_argument('--action', choices=['mission', 'context', 'status', 'codex', 'claude', 'agy','terminal','files','guide','browser','web','web-work','web-personal'], default='mission')
+    parser.add_argument('--action', choices=['mission', 'context', 'status', 'codex', 'claude', 'agy','terminal','files','guide','browser','web','web-work','web-personal','factory','factory-status','cursor','vscode','orca','monitor'], default='mission')
     args = parser.parse_args()
     if args.action in ('browser','web','web-work','web-personal'):
         from .browsers import browser_dialog, open_website, select_context, validate_url
@@ -40,8 +40,26 @@ def main():
         from .runtime import capture_context
         print(capture_context(settings().get('project', str(Path.home()))))
     elif args.action == 'status':
-        from .runtime import open_sessions
-        open_sessions()
+        from .ui import Panel
+        Panel(initial_tab='activity').run()
+    elif args.action == 'factory-status':
+        from .ui import Panel
+        Panel(initial_tab='factory').run()
+    elif args.action == 'factory':
+        from .ui import Panel
+        panel = Panel(initial_tab='factory')
+        panel.root.after(100, panel.open_factory)
+        panel.run()
+    elif args.action in ('cursor','vscode','orca','monitor'):
+        from .desktop import open_tool
+        try:
+            open_tool(args.action)
+        except Exception as error:
+            from tkinter import Tk, messagebox
+            from .i18n import tr, resolve_language
+            root = Tk(); root.withdraw()
+            messagebox.showerror(tr('error',resolve_language(settings().get('language','auto'))), str(error), parent=root)
+            root.destroy()
     elif args.action in ('terminal', 'files', 'guide'):
         import os
         import subprocess

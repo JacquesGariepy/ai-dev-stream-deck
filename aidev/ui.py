@@ -7,23 +7,32 @@ from .discovery import discover
 from .i18n import resolve_language, tr, windows_locale
 from .runtime import capture_context, open_sessions, prepare, spawn_terminal
 from .storage import save_settings, settings
+from .operations import Operations
 
 
-class Panel:
-    def __init__(self, initial_tool=None):
+class Panel(Operations):
+    def __init__(self, initial_tool=None, initial_tab='mission'):
         self.preferences = settings()
         self.preference = self.preferences.get('language', 'auto')
         self.language = resolve_language(self.preference)
         self.catalog = discover()
         self.root = tk.Tk()
-        self.root.geometry('850x720')
-        self.root.minsize(790, 650)
+        self.root.geometry('980x800')
+        self.root.minsize(920, 760)
         self.project = tk.StringVar(value=self.preferences.get('project', str(Path.home())))
         self.tool = tk.StringVar(value=initial_tool or self.preferences.get('last_tool', 'codex'))
         self.profile = tk.StringVar()
         self.workflow = 'implement'
         self.objective_value = ''
         self.render()
+        self.notebook.select({'mission':self.mission_frame, 'activity':self.activity_frame, 'factory':self.factory_frame}[initial_tab])
+        if initial_tab == 'factory':
+            self.refresh_factory()
+        self.root.after(4000, self.tick)
+
+    def tick(self):
+        self.refresh_activity()
+        self.root.after(4000, self.tick)
 
     def text(self, key):
         return tr(key, self.language)
@@ -54,6 +63,17 @@ class Panel:
         ttk.Label(top, text=windows_locale()).pack(side='left')
         ttk.Button(top, text=self.text('refresh'), command=self.refresh).pack(side='right')
         ttk.Button(top, text=self.text('browsers'), command=self.browsers).pack(side='right', padx=8)
+        deck = ttk.Frame(frame); deck.pack(fill='x', pady=(0,8))
+        ttk.Button(deck, text=self.text('deck_language'), command=self.deck_language).pack(side='left')
+        ttk.Label(deck, text=self.text('deck_note')).pack(side='left', padx=10)
+        self.notebook = ttk.Notebook(frame); self.notebook.pack(fill='both', expand=True)
+        self.mission_frame = ttk.Frame(self.notebook, padding=12)
+        self.activity_frame = ttk.Frame(self.notebook, padding=12)
+        self.factory_frame = ttk.Frame(self.notebook, padding=12)
+        for tab, key in ((self.mission_frame,'mission_tab'),(self.activity_frame,'activity_tab'),(self.factory_frame,'factory_tab')):
+            self.notebook.add(tab, text=self.text(key))
+        self.render_operations(self.activity_frame, self.factory_frame)
+        frame = self.mission_frame
         ttk.Label(frame, text=self.text('project')).pack(anchor='w')
         project_row = ttk.Frame(frame); project_row.pack(fill='x', pady=(4, 15))
         ttk.Entry(project_row, textvariable=self.project).pack(side='left', fill='x', expand=True)
@@ -88,7 +108,7 @@ class Panel:
         ttk.Checkbutton(frame, variable=self.english, text=self.text('english_confirm')).pack(anchor='w', pady=5)
         ttk.Label(frame, text=self.text('note'), wraplength=795).pack(anchor='w', pady=10)
         bottom = ttk.Frame(frame); bottom.pack(fill='x', pady=6)
-        ttk.Button(bottom, text=self.text('sessions'), command=open_sessions).pack(side='left')
+        ttk.Button(bottom, text=self.text('sessions'), command=lambda: self.notebook.select(self.activity_frame)).pack(side='left')
         ttk.Button(bottom, text=self.text('context'), command=self.context).pack(side='left', padx=8)
         ttk.Button(bottom, text=self.text('open'), command=lambda: self.submit(False)).pack(side='right')
         self.launch_button = ttk.Button(bottom, text=self.text('launch'), command=lambda: self.submit(True))
@@ -161,7 +181,8 @@ class Panel:
             latest = settings()
             latest.update({key:self.preferences[key] for key in ('project','last_tool','profiles')})
             save_settings(latest)
-            self.root.destroy()
+            self.refresh_activity()
+            self.notebook.select(self.activity_frame)
         except Exception as error:
             self.error(error)
 

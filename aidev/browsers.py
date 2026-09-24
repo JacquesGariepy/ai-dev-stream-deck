@@ -91,7 +91,7 @@ def browser_dialog(url=None, context=None):
     variables={}
     for key in CONTEXTS:
         row=ttk.Frame(panel);row.pack(fill='x',pady=5)
-        ttk.Label(row,text='Work' if key=='work' else 'Personal',width=14).pack(side='left')
+        ttk.Label(row,text=text(key),width=14).pack(side='left')
         var=tk.StringVar(value=labels.get(existing.get('browsers',{}).get(key),''))
         variables[key]=var
         ttk.Combobox(row,textvariable=var,values=[labels[name] for name in installed],state='readonly').pack(side='left',fill='x',expand=True)
@@ -99,7 +99,7 @@ def browser_dialog(url=None, context=None):
     row=ttk.Frame(panel);row.pack(fill='x',pady=12)
     ttk.Label(row,text=text('web_context'),width=14).pack(side='left')
     for key in CONTEXTS:
-        ttk.Radiobutton(row,text=key.capitalize(),value=key,variable=selected).pack(side='left',padx=8)
+        ttk.Radiobutton(row,text=text(key),value=key,variable=selected).pack(side='left',padx=8)
     ask=tk.BooleanVar(value=existing.get('ask_each_time',True))
     ttk.Checkbutton(panel,text=text('ask_browser'),variable=ask).pack(anchor='w',pady=5)
     def submit():

@@ -59,9 +59,9 @@ pwsh -File scripts/Install.ps1 -StreamDeck
 
 Import the `.streamDeckProfile` path printed by the installer. It is generated for **your workstation**, with local shortcut paths and the detected device. Never commit that generated archive. It is not a portable binary preset.
 
-The profile includes Mission, Codex, Claude, AGY, profiles, project selection, Git context, sessions, terminal, files and guide, plus **Prompts**, **Editor**, and **AI Web** subpages. Agent prompt buttons always insert English text and do not press Enter. Editor shortcuts target the active application. A running session continues when you switch Stream Deck pages.
+The complete layout has **65 configured positions across five pages** (including Back buttons): home, Prompts, Editor, AI Web and Apps. It includes Factory, sessions, project selection, all 14 editor shortcuts, all 14 English prompts, Cursor, VS Code, Orca, capture, CPU/RAM, files and guide. See the [complete button map](docs/BUTTONS.md). Agent prompt buttons always insert English text and do not press Enter. Editor shortcuts target the active application. A running session continues when you switch Stream Deck pages.
 
-Regenerate/reimport to change the physical button language. Changing the panel language updates the panel immediately. Other Stream Deck sizes require a layout adapter; existing profiles are not overwritten by generation.
+The panel language selector updates the interface immediately. **Apply language to Stream Deck** generates an `AI Dev FR` or `AI Dev EN` profile and opens the standard Stream Deck import dialog. Install the generated profile there; once both languages are imported, use Stream Deck's profile selector to switch. Hardware labels are generated at import time, not live synchronized with the panel. Other Stream Deck sizes require a layout adapter; generating a profile does not edit installed profiles.
 
 ### Choose Chrome or Edge
 
@@ -87,9 +87,17 @@ Preferences, inventories you save, mission receipts, context snapshots, bridge d
 
 Git snapshots contain metadata only: status, diff statistics and recent commit subjects. Each mission keeps its own snapshot. The app does not read source contents or authentication files. Snapshot metadata and your objectives may still be confidential; do not publish them.
 
-A receipt records a prepared/running/exited/launch_error process state. `exited` does not mean the objective succeeded. Closing a terminal forcibly can leave a stale `running` receipt. Costs and tokens remain null unless a future measured integration supplies them. This is an interactive launcher, not a background swarm or autonomous scheduler.
+A receipt records a prepared/running/exited/launch_error process state. **Activity & next actions** refreshes every four seconds and shows the selected session's objective, exit code and available error evidence. The panel stays open after launch. When a recorded runner no longer exists, the UI marks it interrupted without rewriting the original receipt. PID checks cannot prove objective completion and a reused PID can make an old receipt appear active. `exited` does not mean the objective succeeded. Costs and tokens remain unmeasured.
 
-Factory/tk integration is **not implemented** in this release. Launching from here does not create or complete a canonical Factory task.
+Completed or interrupted sessions offer **Prepare next mission**: an English verification or diagnosis objective, with the same project and exact profile when still available. You review and launch it explicitly. This does not resume the original provider conversation or automatically retry a failed task.
+
+## Factory integration
+
+In **Factory control**, choose your existing `agentic-sdlc-factory` installation folder once (or set `AI_DEV_FACTORY`). Its path stays in private local settings. The **FACTORY** hardware button starts or reuses the native Factory workbench on loopback and opens it through the same Chrome/Edge chooser. The **CONTROL / PILOTAGE** button opens canonical task counts, executing attempts and pending decisions in AI Dev. Refresh reads `autopilot.py status --brief`; it never equates tasks marked executing with live agents.
+
+The integration uses the Factory installation's virtual environment when present. It verifies the workbench's package identity, never takes over an unrelated service, and starts it with `127.0.0.1` binding. The workbench remains running after the panel closes. Logs are private under `factory/workbench.log`. Its native Git-health supervisor also runs as part of the existing workbench.
+
+Factory's native workbench provides its task and execution controls. AI Dev displays budget/registration decisions and points you there; it does not invent a budget, bypass readiness, start autonomous runs, or create canonical tasks from ordinary CLI missions. The Factory installation target is independent of the mission project folder. The native workbench keeps its own last-selected project and language; check its project selector before acting. The AI Dev panel itself is bilingual, but this project does not translate Factory's separate interface.
 
 ## Tests and public export
 

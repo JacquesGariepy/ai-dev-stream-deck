@@ -26,17 +26,17 @@ def background():
 def action(title, kind, config, description=''):
     return {'ActionID':str(uuid.uuid4()), 'Name':title.replace('\n',' '), 'UUID':'com.elgato.streamdeck.'+kind,
             'LinkedTitle':True, 'Settings':config, 'State':0, 'UserInput':description,
-            'States':[{'Title':title, 'ShowTitle':True, 'TitleAlignment':'middle', 'TitleColor':'#ffffff', 'FontSize':13, 'Image':'Images/background.png'}]}
+            'States':[{'Title':title, 'ShowTitle':True, 'TitleAlignment':'middle', 'TitleColor':'#ffffff', 'FontSize':10, 'Image':'Images/background.png'}]}
 
 
-def hotkey(title, key, ctrl=False, shift=False, alt=False):
-    actual={'KeyCmd':False,'KeyCtrl':ctrl,'KeyShift':shift,'KeyOption':alt,'KeyModifiers':2*ctrl+shift+4*alt,'NativeCode':key,'QTKeyCode':key,'VKeyCode':key}
+def hotkey(title, key, ctrl=False, shift=False, alt=False, win=False, qt=None):
+    actual={'KeyCmd':win,'KeyCtrl':ctrl,'KeyShift':shift,'KeyOption':alt,'KeyModifiers':2*ctrl+shift+4*alt+8*win,'NativeCode':key,'QTKeyCode':qt if qt is not None else key,'VKeyCode':key}
     blank={'KeyCmd':False,'KeyCtrl':False,'KeyShift':False,'KeyOption':False,'KeyModifiers':0,'NativeCode':146,'QTKeyCode':33554431,'VKeyCode':-1}
     return action(title,'system.hotkey',{'Coalesce':True,'Hotkeys':[actual,blank,blank,blank]})
 
 
 def generate(output, device, language, links):
-    ids={name:str(uuid.uuid4()) for name in ('profile','home','prompts','editor','web','pinned')}
+    ids={name:str(uuid.uuid4()) for name in ('profile','home','prompts','editor','web','apps','pinned')}
     label=lambda en,fr:fr if language=='fr' else en
     def opened(title, name, description):
         return action(title,'system.open',{'path':'"'+str(links/(name+'.lnk'))+'"'},description)
@@ -45,6 +45,11 @@ def generate(output, device, language, links):
     def website(title,site):
         return opened(title,'web-'+site,'Open the website with the user-selected browser and work/personal context. Ask first unless the user saved a browser preference.')
     back=action(label('BACK','RETOUR'),'profile.backtoparent',{})
+    prompt_labels = {'implement':('IMPLEMENT','REALISER'), 'plan':('PLAN','PLAN'), 'debug':('DEBUG','DEBUG'),
+                     'review':('REVIEW','REVUE'), 'test':('TESTS','TESTS'), 'handoff':('HANDOFF','RELAIS'),
+                     'refactor':('REFACTOR','REFACTOR'), 'explain':('EXPLAIN','EXPLIQUER'),
+                     'performance':('PERF','PERF'), 'security':('SECURITY','SECURITE'), 'docs':('DOCS','DOCS'),
+                     'context':('CONTEXT','CONTEXTE'), 'usage':('USAGE','COUTS'), 'pr_draft':('PR DRAFT','PR DRAFT')}
     pages={
         'home':[
             opened('MISSION','mission','Open the AI Dev control panel to select an installed harness, PowerShell profile and English objective.'),
@@ -52,18 +57,27 @@ def generate(output, device, language, links):
             opened('CLAUDE','claude','Open the control panel with Claude selected.'),
             opened('AGY','agy','Open the control panel with AGY selected.'),
             opened(label('PROFILES','PROFILS'),'mission','Inspect detected harnesses and PowerShell profile commands.'),
-            opened(label('PROJECT','PROJET'),'mission','Choose the project folder in the control panel.'),
+            opened('FACTORY','factory','Start or reuse the installed Factory workbench and open it in the selected browser. Autonomous execution still requires Factory readiness and budget decisions.'),
             opened(label('CONTEXT','CONTEXTE'),'context','Capture Git metadata for the selected project. The action starts asynchronously; check the timestamp in the local context/latest.json file.'),
             opened('SESSIONS','status','Open local session receipts. Exited is not proof of a successful objective.'),
             folder(label('EDITOR','EDITEUR'),'editor'),folder('AI WEB','web'),
             folder('PROMPTS','prompts'),opened('TERMINAL','terminal','Open PowerShell in the selected project.'),
-            opened(label('FILES','FICHIERS'),'files','Open the selected project folder.'),opened('GUIDE','guide','Open the local README.'),
+            folder(label('APPS','OUTILS'),'apps'),opened(label('PROJECT','PROJET'),'mission','Choose the project folder in the control panel.'),
+            opened(label('CONTROL','PILOTAGE'),'factory-status','Read canonical Factory task states and pending decisions.'),
         ],
-        'prompts':[back]+[action(tr(key,language),'system.text',{'isSendingEnter':False,'pastedText':'Communicate in English. '+text}) for key,text in TEXT_PROMPTS.items()],
-        'editor':[back,hotkey(label('COMMANDS','COMMANDES'),80,ctrl=True,shift=True),hotkey(label('FIND FILE','FICHIER'),80,ctrl=True),hotkey(label('SEARCH','RECHERCHE'),70,ctrl=True,shift=True),hotkey(label('SAVE','SAUVER'),83,ctrl=True),hotkey(label('FORMAT','FORMATER'),70,shift=True,alt=True),hotkey(label('COPY','COPIER'),67,ctrl=True),hotkey(label('PASTE','COLLER'),86,ctrl=True)],
+        'prompts':[back]+[action(label(*prompt_labels[key]),'system.text',{'isSendingEnter':False,'pastedText':'Communicate in English. '+text}) for key,text in TEXT_PROMPTS.items()],
+        'editor':[back,hotkey(label('COMMANDS','COMMANDES'),80,ctrl=True,shift=True),hotkey(label('FIND FILE','FICHIER'),80,ctrl=True),hotkey(label('SEARCH','RECHERCHE'),70,ctrl=True,shift=True),hotkey(label('SAVE','SAUVER'),83,ctrl=True),hotkey(label('FORMAT','FORMATER'),70,shift=True,alt=True),hotkey(label('COPY','COPIER'),67,ctrl=True),hotkey(label('PASTE','COLLER'),86,ctrl=True),
+                  hotkey(label('PANEL','PANNEAU'),74,ctrl=True),hotkey(label('PROBLEMS','PROBLEMES'),77,ctrl=True,shift=True),
+                  hotkey(label('RENAME','RENOMMER'),113,qt=16777265),hotkey(label('DEFINITION','DEFINITION'),123,qt=16777275),
+                  hotkey(label('UNDO','ANNULER'),90,ctrl=True),hotkey(label('REDO','RETABLIR'),89,ctrl=True),hotkey(label('ESCAPE','ECHAP'),27,qt=16777216)],
+        'apps':[back,opened('CURSOR','cursor','Open the selected project in the installed Cursor desktop editor.'),
+                opened('VS CODE','vscode','Open the selected project in the installed Visual Studio Code editor.'),
+                opened('ORCA','orca','Open the installed Orca application.'),opened('CPU / RAM','monitor','Open Windows Task Manager.'),
+                hotkey(label('CAPTURE','CAPTURE'),83,win=True,shift=True),opened(label('FILES','FICHIERS'),'files','Open the selected project folder.'),
+                opened('GUIDE','guide','Open the local README.'),opened(label('SETTINGS','REGLAGES'),'mission','Open the control panel to select French or English and apply the language to Stream Deck.')],
         'web':[back,opened(label('BROWSER','NAVIGATEUR'),'browser','Choose Chrome or Edge and optional preferences for work and personal.'),
-               opened('WORK','web-work','Select the work web context. Does not change CLI account profiles.'),
-               opened('PERSONAL','web-personal','Select the personal web context. Does not change CLI account profiles.'),
+               opened(label('WORK','TRAVAIL'),'web-work','Select the work web context. Does not change CLI account profiles.'),
+               opened(label('PERSONAL','PERSO'),'web-personal','Select the personal web context. Does not change CLI account profiles.'),
                website('CHATGPT','chatgpt'),website('CLAUDE','claude'),website('GEMINI','gemini'),
                website('PERPLEXITY','perplexity'),website('GITHUB','github'),website('GITHUB PR','github-pr'),website('ISSUES','github-issues')],
     }
@@ -71,7 +85,7 @@ def generate(output, device, language, links):
     output.parent.mkdir(parents=True,exist_ok=True)
     with zipfile.ZipFile(output,'w',zipfile.ZIP_DEFLATED) as archive:
         def write(path,data):archive.writestr(prefix+'/'+path,json.dumps(data,ensure_ascii=False))
-        write('manifest.json',{'Name':'AI Dev','Version':'3.0','Device':device,'Pages':{'Current':ids['home'],'Default':ids['pinned'],'Pages':[ids['home']]}})
+        write('manifest.json',{'Name':'AI Dev '+language.upper(),'Version':'3.0','Device':device,'Pages':{'Current':ids['home'],'Default':ids['pinned'],'Pages':[ids['home']]}})
         for page,actions in pages.items():
             path='Profiles/'+ids[page].upper()
             write(path+'/manifest.json',{'Name':page,'Icon':'','Controllers':[{'Type':'Keypad','Actions':{f'{i%5},{i//5}':a for i,a in enumerate(actions)}}]})
@@ -83,6 +97,7 @@ def generate(output, device, language, links):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--language',choices=['auto','en','fr'],default=None)
+    parser.add_argument('--import-profile', action='store_true', help='Open the normal Stream Deck import dialog.')
     args=parser.parse_args()
     links=data_dir()/'stream-deck/Launchers'
     root=Path(__file__).resolve().parents[1]
@@ -97,9 +112,11 @@ def main():
             device=candidate;break
     if not device:
         raise RuntimeError('Connect a 15-key Stream Deck and create a profile in Stream Deck first. Other models need a layout adapter.')
-    output=generate(data_dir()/'stream-deck/AI-Dev.streamDeckProfile',device,
-                    resolve_language(args.language or settings().get('language','auto')),links)
+    language = resolve_language(args.language or settings().get('language','auto'))
+    output=generate(data_dir()/('stream-deck/AI-Dev-'+language.upper()+'.streamDeckProfile'),device,language,links)
     print('Import this local file in Stream Deck (do not commit it): '+str(output))
+    if args.import_profile:
+        os.startfile(output)
 
 
 if __name__=='__main__':main()

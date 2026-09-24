@@ -2,7 +2,7 @@ param([Parameter(Mandatory)][string]$PythonPath, [Parameter(Mandatory)][string]$
 $ErrorActionPreference = 'Stop'
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 $shell = New-Object -ComObject WScript.Shell
-foreach ($action in @('mission','codex','claude','agy','context','status','files','terminal','guide','browser','web-work','web-personal')) {
+foreach ($action in @('mission','codex','claude','agy','context','status','files','terminal','guide','browser','web-work','web-personal','factory','factory-status','cursor','vscode','orca','monitor')) {
     $link = $shell.CreateShortcut((Join-Path $OutputDirectory ($action + '.lnk')))
     $link.TargetPath = $PythonPath
     $link.Arguments = '"' + $LauncherPath + '" --action ' + $action
