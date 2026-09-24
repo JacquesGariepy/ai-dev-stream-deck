@@ -198,7 +198,11 @@ def generate(output, device, language, links, entries=None, installed_apps=None,
     # Each native folder has one parent. Daily system tools get their own page.
     agent_buttons = [button for button in pages.pop('home')
                      if button['Name'] not in (label('EDITOR','EDITEUR'), 'TERMINAL', label('APPS','OUTILS'), label('PROJECT','PROJET'))]
-    pages['agentic'] = [back, *agent_buttons]
+    orchestrator_buttons=[button for button in agent_buttons
+                          if Path(button['Settings'].get('path','').strip('"')).stem in ('factory','factory-status')]
+    agent_buttons=[button for button in agent_buttons if button not in orchestrator_buttons]
+    pages['orchestrator']=[back,*orchestrator_buttons]
+    pages['agentic'] = [back, *agent_buttons,folder('ORCH','orchestrator')]
     pages['dev'] = [back, opened('TERMINAL','terminal','Choose an installed terminal for the selected project.'),
                     folder(label('EDITOR','EDITEUR'),'editor'), folder(label('APPS','OUTILS'),'apps'),
                     opened('GIT','git','Inspect local Git state for the selected project.'),
@@ -231,14 +235,23 @@ def generate(output, device, language, links, entries=None, installed_apps=None,
     paginated('daily-apps',[application_button(e) for e in desktop_entries if e['category']=='daily'],opened(label('ALL APPS','TOUTES APPS'),'applications','Search all locally installed Start-menu applications.'))
     dev_entries=[e for e in desktop_entries if e['category']=='dev']
     paginated('dev-apps',[application_button(e) for e in dev_entries],opened(label('ALL APPS','TOUTES APPS'),'applications','Search installed development tools.'))
-    paginated('ai-apps',[application_button(e) for e in desktop_entries if e['category']=='agentic'],opened(label('ALL APPS','TOUTES APPS'),'applications','Search installed AI desktop applications.'))
+    ai_entries=[e for e in desktop_entries if e['category']=='agentic']
+    paginated('ai-apps',[application_button(e) for e in ai_entries],opened(label('ALL APPS','TOUTES APPS'),'applications','Search installed AI desktop applications.'))
     mcp_buttons=[]
     for entry in mcp_entries or []:
         button=opened('\n'.join(textwrap.wrap(entry['name'].upper(),10)[:2]),'mcp-'+entry['id'],
                       'Inspect this local MCP declaration. Server connection, tools and credentials are not tested or exposed.')
         button['Name']=entry['host']+' / '+entry['name'];mcp_buttons.append(button)
     paginated('mcp',mcp_buttons,opened('MCP','mcp','Refresh known local MCP configurations and add a configuration source. No server is started.'))
-    pages['agentic'] += [folder('MCP','mcp'),folder(label('AI APPS','APPS IA'),'ai-apps')]
+    direct_ai=[]
+    for wanted in ('claude','chatgpt'):
+        entry=next((entry for entry in ai_entries if entry['name'].casefold()==wanted),None)
+        if entry:
+            button=application_button(entry)
+            button['Name']=entry['name']+' Desktop'
+            button['States'][0]['Title']=entry['name'].upper()+'\nDESKTOP'
+            direct_ai.append(button)
+    pages['agentic'] += [folder('MCP','mcp'),folder(label('AI APPS','APPS IA'),'ai-apps'),*direct_ai]
     preferred=('docker desktop','github desktop','gitkraken','visual studio code','cursor','visual studio','postman','insomnia','dbeaver','datagrip','pycharm','webstorm','rider','notepad++','devtoys')
     def dev_rank(entry):
         name=entry['name'].casefold()

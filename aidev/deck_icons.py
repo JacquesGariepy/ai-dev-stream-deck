@@ -33,6 +33,19 @@ def icon_png(kind, theme='daily'):
     elif kind=='agent':
         box(42,33,60,43);line(72,33,72,22);dot(72,20,r=4)
         dot(57,49,r=4);dot(87,49,r=4);line(59,64,85,64)
+    elif kind=='chatgpt':
+        # Original six-node AI network pictogram.
+        circle(72,54,11)
+        for index in range(6):
+            angle=index*math.tau/6-math.pi/2
+            x=72+29*math.cos(angle);y=54+29*math.sin(angle)
+            circle(x,y,10);line(72+10*math.cos(angle),54+10*math.sin(angle),x-8*math.cos(angle),y-8*math.sin(angle))
+    elif kind=='claude':
+        # Original radial reasoning/spark pictogram.
+        circle(72,54,13);dot(72,54,r=5)
+        for index in range(8):
+            angle=index*math.tau/8
+            line(72+18*math.cos(angle),54+18*math.sin(angle),72+34*math.cos(angle),54+34*math.sin(angle),3)
     elif kind=='music':
         circle(72,54,32)
         for offset in (0,12,24):poly([(49,42+offset),(64,39+offset),(82,40+offset),(96,45+offset)])
@@ -85,6 +98,8 @@ def button_icon(button):
     if 'SPOTIFY' in title:return 'music'
     if title=='DEV':return 'code'
     if title=='AGENTIC' or 'profile-' in path or title=='MISSION':return 'agent'
+    if title.startswith('CHATGPT') and 'DESKTOP' in title:return 'chatgpt'
+    if title.startswith('CLAUDE') and 'DESKTOP' in title:return 'claude'
     if 'terminal' in path:return 'terminal'
     if 'capture' in path or 'PHOTO' in title or title=='CAPTURE':return 'camera'
     if 'browser' in path or 'web-' in path or 'WEB' in title:return 'web'

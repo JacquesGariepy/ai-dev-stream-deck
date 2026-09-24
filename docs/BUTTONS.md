@@ -9,7 +9,7 @@ The 15-key layout starts with a general-purpose Daily page and two work folders.
 | Media | Back; Previous, Play/Pause, Next, Mute, Volume down/up |
 | Desktop / Bureau | Back; Show desktop, Task view, display mode chooser, display settings, new/previous/next/close virtual desktop, move active window to the left/right monitor, minimize and restore windows |
 | DEV | Back, Terminal chooser, Editor, Dev Apps, Build/Test, Debug, Git, Git Web, Files, Project, AI Dev diagnostics, and up to four useful installed tools such as Docker Desktop or GitHub Desktop |
-| AGENTIC | Back, Mission, up to three detected harnesses, Profiles, optional Orchestrator, Context, Sessions, AI Web, Prompts, Control, MCP, detected AI Apps |
+| AGENTIC | Back, Mission, up to three detected harnesses, Profiles, Orchestrator folder, Context, Sessions, AI Web, Prompts, MCP, detected AI Apps, plus direct Claude Desktop and ChatGPT Desktop keys when installed |
 | Prompts | Back; Implement, Plan, Debug, Review, Tests, Handoff, Refactor, Explain, Performance, Security, Docs, Context, Usage/costs, PR draft |
 | Editor | Back; Commands, Find file, Search, Save, Format, Copy, Paste, Panel, Problems, Rename, Definition, Undo, Redo, Escape |
 | AI Web | Back; Browser settings, Work, Personal, ChatGPT, Claude, Gemini, Perplexity, GitHub, Pull requests, Issues |

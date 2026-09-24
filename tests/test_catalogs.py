@@ -82,5 +82,26 @@ class CatalogTests(unittest.TestCase):
         self.assertNotIn('PowerShell',visible)
         self.assertEqual(len(actions),15)
 
+    def test_agentic_home_features_installed_ai_desktop_apps_with_icons(self):
+        import importlib.util
+        root=Path(__file__).resolve().parents[1]
+        spec=importlib.util.spec_from_file_location('agentic_deck',root/'scripts/stream_deck.py')
+        deck=importlib.util.module_from_spec(spec);spec.loader.exec_module(deck)
+        apps=[{'id':f'{300+n:064x}','name':name,'category':'agentic'} for n,name in enumerate(('Claude','ChatGPT','LM Studio'))]
+        with tempfile.TemporaryDirectory() as folder:
+            output=deck.generate(Path(folder)/'deck.zip',{'Model':'test'},'fr',Path(folder)/'links',[],installed_apps=set(),desktop_entries=apps)
+            with zipfile.ZipFile(output) as archive:
+                manifests=[(name,json.loads(archive.read(name))) for name in archive.namelist() if '/Profiles/' in name and name.endswith('manifest.json')]
+                name,page=next(row for row in manifests if row[1]['Name']=='agentic')
+                actions=list(page['Controllers'][0]['Actions'].values())
+                self.assertLessEqual(len(actions),15)
+                visible={action['Name']:action for action in actions}
+                self.assertIn('Claude Desktop',visible);self.assertIn('ChatGPT Desktop',visible)
+                self.assertIn('APPS IA',visible);self.assertIn('ORCH',visible)
+                base=name.rsplit('/',1)[0]+'/'
+                for app,icon in (('Claude Desktop','claude-agent.png'),('ChatGPT Desktop','chatgpt-agent.png')):
+                    self.assertTrue(visible[app]['States'][0]['Image'].endswith(icon))
+                    self.assertTrue(archive.read(base+visible[app]['States'][0]['Image']).startswith(b'\x89PNG'))
+
 
 if __name__=='__main__':unittest.main()
