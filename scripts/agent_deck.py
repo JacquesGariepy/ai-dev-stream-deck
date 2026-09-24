@@ -20,13 +20,15 @@ from aidev.deck_layout import Grid, MODELS  # noqa: E402
 from aidev.shelllink import shell_link  # noqa: E402
 
 
-def write_shortcuts(deck, output, working):
+def write_shortcuts(deck, output, working, native=None):
     output.mkdir(parents=True, exist_ok=True)
     # This directory is owned by the generated Agentic profile. Remove links
     # for intents that disappeared so upgrades cannot leave dead deck actions.
     for link in output.glob('ai-*.lnk'):
         link.unlink()
-    if os.name == 'nt':
+    if native is None:
+        native = os.name == 'nt'
+    if native:
         manifest = output / 'shortcuts.json'
         manifest.write_text(json.dumps([
             {'name': name, 'target': target, 'arguments': arguments, 'workingDirectory': working}
@@ -41,12 +43,13 @@ def write_shortcuts(deck, output, working):
             (output / (name + '.lnk')).write_bytes(shell_link(target, arguments, working))
 
 
-def generate(output, device, script_windows_path, links_windows_path, links_local_path, grid=None):
+def generate(output, device, script_windows_path, links_windows_path, links_local_path, grid=None,
+             native_shortcuts=None):
     grid = grid or Grid.for_device(device)
     deck = AgentDeck(script_windows_path, grid).build()
     local = Path(links_local_path)
     working = str(PureWindowsPath(script_windows_path).parent)
-    write_shortcuts(deck, local, working)
+    write_shortcuts(deck, local, working, native_shortcuts)
     write_profile(deck, output, device, links_windows_path, grid)
     audit = audit_profile(output, local, grid)
     return output, audit

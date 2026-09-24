@@ -15,7 +15,8 @@ SCRIPT='C:\\Tools\\ai-dev\\agentdeck\\ai.ps1'
 class AgentDeckTests(unittest.TestCase):
     def test_every_key_is_native_or_an_agent_shortcut_never_the_panel(self):
         with tempfile.TemporaryDirectory() as folder:
-            output,audit=script.generate(Path(folder)/'deck.zip',{'Model':'20GBA9901'},SCRIPT,'C:\\Links',Path(folder)/'links')
+            output,audit=script.generate(Path(folder)/'deck.zip',{'Model':'20GBA9901'},SCRIPT,'C:\\Links',Path(folder)/'links',
+                                         native_shortcuts=False)
             self.assertGreater(audit['website'],0)
             with zipfile.ZipFile(output) as archive:
                 pages={json.loads(archive.read(n))['Name']:json.loads(archive.read(n)) for n in archive.namelist() if '/Profiles/' in n and n.endswith('manifest.json')}
