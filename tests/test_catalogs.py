@@ -62,5 +62,25 @@ class CatalogTests(unittest.TestCase):
         self.assertTrue(any(page['Name']=='daily-apps-2' for page in pages))
         self.assertTrue(all(len(page['Controllers'][0]['Actions'] or {})<=15 for page in pages))
 
+    def test_dev_home_features_installed_workstation_tools(self):
+        import importlib.util
+        root=Path(__file__).resolve().parents[1]
+        spec=importlib.util.spec_from_file_location('featured_deck',root/'scripts/stream_deck.py')
+        deck=importlib.util.module_from_spec(spec);spec.loader.exec_module(deck)
+        names=['PowerShell','Docker Desktop','GitHub Desktop','Visual Studio Code','Postman','Notepad++']
+        apps=[{'id':f'{200+n:064x}','name':name,'category':'dev'} for n,name in enumerate(names)]
+        with tempfile.TemporaryDirectory() as folder:
+            output=deck.generate(Path(folder)/'deck.zip',{'Model':'test'},'en',Path(folder)/'links',[],installed_apps=set(),desktop_entries=apps)
+            with zipfile.ZipFile(output) as archive:
+                pages=[json.loads(archive.read(name)) for name in archive.namelist() if '/Profiles/' in name and name.endswith('manifest.json')]
+        dev=next(page for page in pages if page['Name']=='dev')
+        actions=list(dev['Controllers'][0]['Actions'].values())
+        visible={action['Name'] for action in actions}
+        self.assertTrue({'Docker Desktop','GitHub Desktop','Visual Studio Code','Postman'}.issubset(visible))
+        vscode=next(action for action in actions if action['Name']=='Visual Studio Code')
+        self.assertEqual(vscode['States'][0]['Title'],'VS CODE')
+        self.assertNotIn('PowerShell',visible)
+        self.assertEqual(len(actions),15)
+
 
 if __name__=='__main__':unittest.main()

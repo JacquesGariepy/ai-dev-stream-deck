@@ -169,10 +169,14 @@ def generate(output, device, language, links, entries=None, installed_apps=None,
         pages['home']=[button for button in pages['home'] if button['Name']!='PHOTO VIDEO']
     desktop_entries=desktop_entries or []
     def application_button(entry):
-        button=opened('\n'.join(textwrap.wrap(entry['name'].upper(),10)[:2]),'app-'+entry['id'],'Open this exact detected Windows desktop application.')
+        aliases={'visual studio code':'VS CODE','docker desktop':'DOCKER\nDESKTOP','github desktop':'GITHUB\nDESKTOP',
+                 'chatgpt':'CHATGPT','claude':'CLAUDE','windows terminal':'TERMINAL'}
+        title=aliases.get(entry['name'].casefold(),'\n'.join(textwrap.wrap(entry['name'].upper(),10)[:2]))
+        button=opened(title,'app-'+entry['id'],'Open this exact detected Windows desktop application.')
         button['Name']=entry['name'];return button
     paginated('daily-apps',[application_button(e) for e in desktop_entries if e['category']=='daily'],opened(label('ALL APPS','TOUTES APPS'),'applications','Search all locally installed Start-menu applications.'))
-    paginated('dev-apps',[application_button(e) for e in desktop_entries if e['category']=='dev'],opened(label('ALL APPS','TOUTES APPS'),'applications','Search installed development tools.'))
+    dev_entries=[e for e in desktop_entries if e['category']=='dev']
+    paginated('dev-apps',[application_button(e) for e in dev_entries],opened(label('ALL APPS','TOUTES APPS'),'applications','Search installed development tools.'))
     paginated('ai-apps',[application_button(e) for e in desktop_entries if e['category']=='agentic'],opened(label('ALL APPS','TOUTES APPS'),'applications','Search installed AI desktop applications.'))
     mcp_buttons=[]
     for entry in mcp_entries or []:
@@ -181,9 +185,20 @@ def generate(output, device, language, links, entries=None, installed_apps=None,
         button['Name']=entry['host']+' / '+entry['name'];mcp_buttons.append(button)
     paginated('mcp',mcp_buttons,opened('MCP','mcp','Refresh known local MCP configurations and add a configuration source. No server is started.'))
     pages['agentic'] += [folder('MCP','mcp'),folder(label('AI APPS','APPS IA'),'ai-apps')]
-    pages['dev'] += [folder(label('DEV APPS','APPS DEV'),'dev-apps'),
-                     opened('BUILD\nTEST','project-tasks','Inspect real project scripts and run only the selected task in a terminal.'),
-                     folder('DEBUG','debug'),folder(label('GIT WEB','GIT WEB'),'git-web')]
+    preferred=('docker desktop','github desktop','gitkraken','visual studio code','cursor','visual studio','postman','insomnia','dbeaver','datagrip','pycharm','webstorm','rider','notepad++','devtoys')
+    def dev_rank(entry):
+        name=entry['name'].casefold()
+        return next((index for index,value in enumerate(preferred) if name==value or name.startswith(value+' ')),len(preferred))
+    featured_dev=[e for e in sorted(dev_entries,key=lambda e:(dev_rank(e),e['name'].casefold()))
+                  if not any(word in e['name'].casefold() for word in ('installer','blend','powershell','terminal','wsl settings'))][:4]
+    # Keep the DEV landing page workstation-first. AI Dev diagnostics remain under AI DEV.
+    pages['dev']=[back,opened('TERMINAL','terminal','Choose an installed terminal for the selected project.'),
+                  folder(label('EDITOR','EDITEUR'),'editor'),folder(label('DEV APPS','APPS DEV'),'dev-apps'),
+                  opened('BUILD\nTEST','project-tasks','Inspect real project scripts and run only the selected task in a terminal.'),
+                  folder('DEBUG','debug'),opened('GIT','git','Inspect local Git state for the selected project.'),
+                  folder('GIT WEB','git-web'),opened(label('FILES','FICHIERS'),'files','Open the selected project folder.'),
+                  opened(label('PROJECT','PROJET'),'mission','Choose the project in the control panel.'),folder('AI DEV','apps'),
+                  *[application_button(entry) for entry in featured_dev]]
     pages['debug']=[back,hotkey('START F5',116,qt=16777268),hotkey('STOP',116,shift=True,qt=16777268),
                     hotkey('BREAKPOINT',120,qt=16777272),hotkey('STEP OVER',121,qt=16777273),
                     hotkey('STEP INTO',122,qt=16777274),hotkey('STEP OUT',122,shift=True,qt=16777274),
