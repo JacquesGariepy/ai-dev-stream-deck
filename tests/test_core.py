@@ -136,6 +136,11 @@ Set-Alias codex-fixture-alias codex-fixture
             page_names={m.get('Name') for m in manifests}
             self.assertTrue({'home','prompts','editor','web'}.issubset(page_names))
             actions=[a for m in manifests for c in m.get('Controllers',[]) for a in (c.get('Actions') or {}).values()]
+            self.assertFalse(any(a['UUID'].endswith('system.website') for a in actions))
+            web=next(m for m in manifests if m.get('Name')=='web')
+            web_actions=web['Controllers'][0]['Actions'].values()
+            self.assertTrue(any('web-work.lnk' in a['Settings'].get('path','') for a in web_actions))
+            self.assertTrue(any('browser.lnk' in a['Settings'].get('path','') for a in web_actions))
             prompts=[a for a in actions if a['UUID'].endswith('system.text')]
             self.assertEqual(len(prompts),len(TEXT_PROMPTS))
             for prompt in prompts:

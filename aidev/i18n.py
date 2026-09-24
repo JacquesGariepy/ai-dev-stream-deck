@@ -3,6 +3,11 @@ import locale
 import os
 
 STRINGS = {
+    'browsers': ('Web browsers','Navigateurs web'),
+    'ask_browser': ('Ask me before each web opening','Me demander avant chaque ouverture web'),
+    'browser_note': ('Choose Edge or Chrome for each context. Web buttons use the active context and the browser\'s existing session.', 'Choisis Edge ou Chrome pour chaque contexte. Les boutons web utilisent le contexte actif et la session existante du navigateur.'),
+    'web_context': ('Active context','Contexte actif'),
+    'save': ('Save','Enregistrer'), 'save_open': ('Save and open','Enregistrer et ouvrir'),
     'refactor': ('Refactor','Simplifier'), 'explain': ('Explain','Expliquer'),
     'performance': ('Performance','Performance'), 'security': ('Security','Sécurité'),
     'docs': ('Docs','Docs'), 'usage': ('Usage','Usage'), 'pr_draft': ('PR draft','Brouillon PR'),

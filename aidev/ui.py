@@ -46,11 +46,14 @@ class Panel:
             self.preference = {'Auto': 'auto', 'Français': 'fr', 'English': 'en'}[language.get()]
             self.language = resolve_language(self.preference)
             self.preferences['language'] = self.preference
-            save_settings(self.preferences)
+            latest = settings()
+            latest['language'] = self.preference
+            save_settings(latest)
             self.render()
         language.bind('<<ComboboxSelected>>', change_language)
         ttk.Label(top, text=windows_locale()).pack(side='left')
         ttk.Button(top, text=self.text('refresh'), command=self.refresh).pack(side='right')
+        ttk.Button(top, text=self.text('browsers'), command=self.browsers).pack(side='right', padx=8)
         ttk.Label(frame, text=self.text('project')).pack(anchor='w')
         project_row = ttk.Frame(frame); project_row.pack(fill='x', pady=(4, 15))
         ttk.Entry(project_row, textvariable=self.project).pack(side='left', fill='x', expand=True)
@@ -126,6 +129,11 @@ class Panel:
         except Exception as error:
             self.error(error)
 
+    def browsers(self):
+        import subprocess
+        import sys
+        subprocess.Popen([sys.executable, str(Path(__file__).resolve().parent.parent/'launch.py'), '--action','browser'])
+
     def browse(self):
         selected = filedialog.askdirectory(initialdir=self.project.get(), parent=self.root)
         if selected:
@@ -150,7 +158,9 @@ class Panel:
             spawn_terminal(path)
             self.preferences.update(project=self.project.get(), last_tool=self.tool.get())
             self.preferences.setdefault('profiles', {})[self.tool.get()] = row['command']
-            save_settings(self.preferences)
+            latest = settings()
+            latest.update({key:self.preferences[key] for key in ('project','last_tool','profiles')})
+            save_settings(latest)
             self.root.destroy()
         except Exception as error:
             self.error(error)

@@ -63,6 +63,14 @@ The profile includes Mission, Codex, Claude, AGY, profiles, project selection, G
 
 Regenerate/reimport to change the physical button language. Changing the panel language updates the panel immediately. Other Stream Deck sizes require a layout adapter; existing profiles are not overwritten by generation.
 
+### Choose Chrome or Edge
+
+Web buttons use AI Dev's browser launcher instead of the Windows default browser. **Ask before each opening** is enabled by default: choose Chrome or Edge for the active work/personal context, then save and open. No work/browser association is imposed.
+
+Open **Web browsers** in the desktop panel or **BROWSER** in the Stream Deck AI Web folder to change preferences. Disable the ask option to open links directly with the saved browser. **WORK** and **PERSONAL** select the web context; they do not change any CLI account profile. If the chosen browser is missing, AI Dev asks again instead of silently using another browser.
+
+The app uses the selected browser's existing session. It does not sign in, move cookies or select a particular internal Chrome/Edge profile. Browser choices are stored only in local settings. Regenerate/reimport an older exported Stream Deck profile to replace its native default-browser website actions.
+
 ## Optional Elgato MCP
 
 ```powershell

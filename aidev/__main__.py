@@ -9,9 +9,28 @@ def main():
     parser.add_argument('--discover', action='store_true', help='Print local inventory; contains private paths, do not publish it.')
     parser.add_argument('--run', type=Path, help=argparse.SUPPRESS)
     parser.add_argument('--tool', help='Preselect a detected harness.')
-    parser.add_argument('--action', choices=['mission', 'context', 'status', 'codex', 'claude', 'agy','terminal','files','guide'], default='mission')
+    parser.add_argument('--url', help='HTTP(S) URL for an explicit browser launch.')
+    parser.add_argument('--web-context', choices=['work','personal'])
+    parser.add_argument('--action', choices=['mission', 'context', 'status', 'codex', 'claude', 'agy','terminal','files','guide','browser','web','web-work','web-personal'], default='mission')
     args = parser.parse_args()
-    if args.discover:
+    if args.action in ('browser','web','web-work','web-personal'):
+        from .browsers import browser_dialog, open_website, select_context, validate_url
+        if args.action == 'web':
+            if not args.url: parser.error('--action web requires --url')
+            validate_url(args.url)
+            if settings().get('web',{}).get('ask_each_time',True):
+                browser_dialog(args.url,args.web_context)
+            else:
+                try:
+                    open_website(args.url,args.web_context)
+                except (ValueError,OSError):
+                    browser_dialog(args.url,args.web_context)
+        elif args.action in ('web-work','web-personal'):
+            context=args.action.removeprefix('web-')
+            if not select_context(context):browser_dialog(context=context)
+        else:
+            browser_dialog(context=args.web_context)
+    elif args.discover:
         from .discovery import discover
         print(json.dumps(discover(), ensure_ascii=False, indent=2))
     elif args.run:

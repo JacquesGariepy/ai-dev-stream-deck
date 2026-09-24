@@ -42,8 +42,8 @@ def generate(output, device, language, links):
         return action(title,'system.open',{'path':'"'+str(links/(name+'.lnk'))+'"'},description)
     def folder(title,name):
         return action(title,'profile.openchild',{'ProfileUUID':ids[name]})
-    def website(title,url):
-        return action(title,'system.website',{'path':url,'openInBrowser':True})
+    def website(title,site):
+        return opened(title,'web-'+site,'Open the website with the user-selected browser and work/personal context. Ask first unless the user saved a browser preference.')
     back=action(label('BACK','RETOUR'),'profile.backtoparent',{})
     pages={
         'home':[
@@ -61,7 +61,11 @@ def generate(output, device, language, links):
         ],
         'prompts':[back]+[action(tr(key,language),'system.text',{'isSendingEnter':False,'pastedText':'Communicate in English. '+text}) for key,text in TEXT_PROMPTS.items()],
         'editor':[back,hotkey(label('COMMANDS','COMMANDES'),80,ctrl=True,shift=True),hotkey(label('FIND FILE','FICHIER'),80,ctrl=True),hotkey(label('SEARCH','RECHERCHE'),70,ctrl=True,shift=True),hotkey(label('SAVE','SAUVER'),83,ctrl=True),hotkey(label('FORMAT','FORMATER'),70,shift=True,alt=True),hotkey(label('COPY','COPIER'),67,ctrl=True),hotkey(label('PASTE','COLLER'),86,ctrl=True)],
-        'web':[back,website('CHATGPT','https://chatgpt.com/'),website('CLAUDE','https://claude.ai/'),website('GEMINI','https://gemini.google.com/'),website('GITHUB','https://github.com/')],
+        'web':[back,opened(label('BROWSER','NAVIGATEUR'),'browser','Choose Chrome or Edge and optional preferences for work and personal.'),
+               opened('WORK','web-work','Select the work web context. Does not change CLI account profiles.'),
+               opened('PERSONAL','web-personal','Select the personal web context. Does not change CLI account profiles.'),
+               website('CHATGPT','chatgpt'),website('CLAUDE','claude'),website('GEMINI','gemini'),
+               website('PERPLEXITY','perplexity'),website('GITHUB','github'),website('GITHUB PR','github-pr'),website('ISSUES','github-issues')],
     }
     prefix=ids['profile'].upper()+'.sdProfile'
     output.parent.mkdir(parents=True,exist_ok=True)
