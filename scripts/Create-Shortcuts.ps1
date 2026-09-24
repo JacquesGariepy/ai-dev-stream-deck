@@ -19,7 +19,7 @@ foreach ($language in @('en','fr')) {
     $link.WorkingDirectory = Split-Path -Parent $LauncherPath
     $link.Save()
 }
-foreach ($action in @('mission','codex','claude','agy','context','status','files','terminal','guide','browser','web-work','web-personal','factory','factory-status','cursor','vscode','orca','monitor','health','git','logs')) {
+foreach ($action in @('mission','codex','claude','agy','context','status','files','terminal','guide','browser','web-work','web-personal','factory','factory-status','cursor','vscode','orca','monitor','resources','performance','system-info','capture','health','git','logs')) {
     $link = $shell.CreateShortcut((Join-Path $OutputDirectory ($action + '.lnk')))
     $link.TargetPath = $PythonPath
     $link.Arguments = '"' + $LauncherPath + '" --action ' + $action

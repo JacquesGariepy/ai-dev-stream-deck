@@ -141,7 +141,7 @@ Set-Alias codex-fixture-alias codex-fixture
             editor=next(m for m in manifests if m.get('Name')=='editor')
             self.assertEqual(len(editor['Controllers'][0]['Actions']),15)
             actions=[a for m in manifests for c in m.get('Controllers',[]) for a in (c.get('Actions') or {}).values()]
-            for launcher in ('cursor','vscode','orca','monitor','factory','factory-status','files','guide','status','mission','codex','claude','agy'):
+            for launcher in ('cursor','vscode','orca','monitor','resources','performance','system-info','capture','factory','factory-status','files','guide','status','mission','codex','claude','agy'):
                 self.assertTrue(any((launcher+'.lnk') in a['Settings'].get('path','') for a in actions),launcher)
             keys=[a['Settings']['Hotkeys'][0] for a in actions if a['UUID'].endswith('system.hotkey')]
             self.assertTrue(any(k['KeyCmd'] and k['KeyShift'] and k['NativeCode']==83 for k in keys))

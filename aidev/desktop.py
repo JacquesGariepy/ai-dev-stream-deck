@@ -1,5 +1,6 @@
 """Launch installed desktop tools using explicit executable paths."""
 import os
+import shutil
 from pathlib import Path
 import subprocess
 from .storage import settings
@@ -13,6 +14,11 @@ def open_tool(name):
         'vscode': [local/'Programs/Microsoft VS Code/Code.exe', programs/'Microsoft VS Code/Code.exe'],
         'orca': [local/'Programs/orca/Orca.exe', programs/'Orca/Orca.exe'],
         'monitor': [Path(os.environ.get('WINDIR', 'C:/Windows'))/'System32/Taskmgr.exe'],
+        'resources': [Path(os.environ.get('WINDIR', 'C:/Windows'))/'System32/resmon.exe'],
+        'performance': [Path(os.environ.get('WINDIR', 'C:/Windows'))/'System32/perfmon.exe'],
+        'system-info': [Path(os.environ.get('WINDIR', 'C:/Windows'))/'System32/msinfo32.exe'],
+        'capture': [Path(shutil.which('SnippingTool') or local/'Microsoft/WindowsApps/SnippingTool.exe'),
+                    Path(os.environ.get('WINDIR', 'C:/Windows'))/'System32/SnippingTool.exe'],
     }
     executable = next((p for p in locations[name] if p.is_file()), None)
     if not executable:

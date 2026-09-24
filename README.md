@@ -119,6 +119,12 @@ The Stream Deck **TERMINAL** button opens a bilingual chooser on every press. It
 
 The selected project is the starting folder for supported shells. Generic terminal applications may override it with their own startup settings. The last choice is preselected; **Refresh** scans again, and **Add another executable** covers portable or custom installations outside known locations. Choices and executable paths remain private under `AIDev`; nothing is uploaded. Existing TERMINAL shortcuts use the chooser without reimporting the Stream Deck profile.
 
+## System details and screen capture
+
+On Stream Deck's **APPS** page, **CPU / RAM** opens a folder with Task Manager, Resource Monitor (per-process CPU, memory, disk and network), Performance Monitor and System Information. These open existing Windows tools; no background collector or fabricated statistics are used.
+
+**PHOTO / VIDEO** opens Windows Snipping Tool, where you choose a screenshot or video recording. You choose the region and start recording yourself; the button does not start a recording. Video recording requires a compatible Snipping Tool version on Windows 11. The existing **CAPTURE** key still opens the screenshot overlay directly. Import the regenerated profile to install these new keys.
+
 ## Tests and public export
 
 ```powershell
