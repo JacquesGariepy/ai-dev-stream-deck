@@ -16,7 +16,7 @@ class PanelTests(unittest.TestCase):
             save_json(data_dir()/'settings.json', {'language':'fr','project':folder,'profiles':{'codex':'codex-work'}})
             save_json(data_dir()/'missions/previous.json', {'id':'previous','tool':'codex','profile':'work','command':'codex-work','project':folder,'objective':'Fix the parser.','status':'exited','exit_code':0})
             with patch('aidev.ui.discover', return_value={'entries':[entry]}):
-                panel=Panel(initial_tab='activity')
+                panel=Panel()
             try:
                 panel.root.withdraw()
                 panel.root.update()

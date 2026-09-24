@@ -69,12 +69,17 @@ def spawn_terminal(path):
     launcher = str(Path(__file__).resolve().parent.parent / 'launch.py')
     runner = [python, launcher, '--run', str(path)]
     wt = shutil.which('wt')
-    if wt:
-        command = [wt, '-w', 'new', 'new-tab', '--title', f"AI Dev: {mission['tool']} [{mission['profile']}]",
-                   '-d', mission['project'], *runner]
-        subprocess.Popen(command)
-    else:
-        subprocess.Popen(runner, cwd=mission['project'], creationflags=getattr(subprocess, 'CREATE_NEW_CONSOLE', 0))
+    try:
+        if wt:
+            command = [wt, '-w', 'new', 'new-tab', '--title', f"AI Dev: {mission['tool']} [{mission['profile']}]",
+                       '-d', mission['project'], *runner]
+            subprocess.Popen(command)
+        else:
+            subprocess.Popen(runner, cwd=mission['project'], creationflags=getattr(subprocess, 'CREATE_NEW_CONSOLE', 0))
+    except OSError as error:
+        mission.update(status='launch_error',ended=now(),error=str(error))
+        save_json(path,mission)
+        raise
 
 
 def run_mission(path):

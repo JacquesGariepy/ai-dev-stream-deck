@@ -9,6 +9,8 @@ from aidev.storage import data_dir, save_settings, settings
 
 
 def main():
+    from aidev.migration import migrate_legacy
+    migrate_legacy()
     node = shutil.which('node')
     npm = shutil.which('npm.cmd') or shutil.which('npm')
     if not node or not npm:

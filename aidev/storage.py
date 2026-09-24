@@ -7,7 +7,7 @@ import tempfile
 
 def data_dir():
     override = os.environ.get('AI_DEV_DATA_DIR')
-    return Path(override) if override else Path(os.environ.get('LOCALAPPDATA', Path.home() / '.local/share')) / 'AI Dev'
+    return Path(override) if override else Path(os.environ.get('LOCALAPPDATA', Path.home() / '.local/share')) / 'AIDev'
 
 
 def read_json(path, default=None):

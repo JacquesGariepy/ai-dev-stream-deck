@@ -76,7 +76,10 @@ def generate(output, device, language, links, entries=None):
                 opened('VS CODE','vscode','Open the selected project in the installed Visual Studio Code editor.'),
                 opened('ORCA','orca','Open the installed Orca application.'),opened('CPU / RAM','monitor','Open Windows Task Manager.'),
                 hotkey(label('CAPTURE','CAPTURE'),83,win=True,shift=True),opened(label('FILES','FICHIERS'),'files','Open the selected project folder.'),
-                opened('GUIDE','guide','Open the local README.'),opened(label('SETTINGS','REGLAGES'),'mission','Open the control panel to select French or English and apply the language to Stream Deck.')],
+                opened('GUIDE','guide','Open the local README.'),opened(label('SETTINGS','REGLAGES'),'mission','Open the control panel to select French or English and apply the language to Stream Deck.'),
+                opened(label('HEALTH','DIAG'),'health','Inspect current tool availability, local storage access and MCP bridge files. Authentication is not verified.'),
+                opened('GIT','git','Read current branch, changed files and Git worktrees without modifying the repository or fetching remotes.'),
+                opened(label('LOGS','JOURNAUX'),'logs','Open the private application error log folder. No logs are uploaded.')],
         'web':[back,opened(label('BROWSER','NAVIGATEUR'),'browser','Choose Chrome or Edge and optional preferences for work and personal.'),
                opened(label('WORK','TRAVAIL'),'web-work','Select the work web context. Does not change CLI account profiles.'),
                opened(label('PERSONAL','PERSO'),'web-personal','Select the personal web context. Does not change CLI account profiles.'),
@@ -140,6 +143,8 @@ def generate(output, device, language, links, entries=None):
 
 
 def main():
+    from aidev.migration import migrate_legacy
+    migrate_legacy()
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--language',choices=['auto','en','fr'],default=None)
     parser.add_argument('--import-profile', action='store_true', help='Open the normal Stream Deck import dialog.')

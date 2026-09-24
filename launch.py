@@ -1,4 +1,5 @@
 from aidev.__main__ import main
 
 if __name__ == '__main__':
-    main()
+    from aidev.errors import run
+    run(main)

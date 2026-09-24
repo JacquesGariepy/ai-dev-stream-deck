@@ -35,7 +35,7 @@ On opening the panel, AI Dev starts PowerShell **with the user's normal startup 
 
 Named functions and aliases that call `Invoke-AiProfile -Tool 'name' -ProfileName 'name'` are detected automatically. Detection distinguishes an available CLI, a missing CLI, and a profile directory that has not been initialized. It does **not** prove authentication is valid. The Cursor desktop editor is not treated as Cursor CLI.
 
-For other PowerShell wrappers, add an explicit local registration to `%LOCALAPPDATA%\AI Dev\profiles.local.json`:
+For other PowerShell wrappers, add an explicit local registration to `%LOCALAPPDATA%\AIDev\profiles.local.json`:
 
 ```json
 [
@@ -59,7 +59,7 @@ pwsh -File scripts/Install.ps1 -StreamDeck
 
 Import the `.streamDeckProfile` path printed by the installer. It is generated for **your workstation**, with local shortcut paths and the detected device. Never commit that generated archive. It is not a portable binary preset.
 
-The base layout has **65 configured positions across five pages** (including Back buttons): home, Prompts, Editor, AI Web and Apps. Additional profile pages are generated from the workstation's detected harnesses and PowerShell commands. It includes Factory, sessions, project selection, all 14 editor shortcuts, all 14 English prompts, Cursor, VS Code, Orca, capture, CPU/RAM, files and guide. See the [complete button map](docs/BUTTONS.md). Agent prompt buttons always insert English text and do not press Enter. Editor shortcuts target the active application. A running session continues when you switch Stream Deck pages.
+The base layout has **68 configured positions across five pages** (including Back buttons): home, Prompts, Editor, AI Web and Apps. Additional profile pages are generated from the workstation's detected harnesses and PowerShell commands. It includes Factory, sessions, project selection, all 14 editor shortcuts, all 14 English prompts, Cursor, VS Code, Orca, capture, CPU/RAM, files, guide, tool diagnostics, Git inspection and logs. See the [complete button map](docs/BUTTONS.md). Agent prompt buttons always insert English text and do not press Enter. Editor shortcuts target the active application. A running session continues when you switch Stream Deck pages.
 
 **CODEX / CLAUDE / AGY** open their detected profile subpages. **PROFILES** lists every detected harness, including additional tools such as Cursor. Each profile key (for example `CODEX / WORK`) opens the mission panel with that exact command selected, overriding any remembered account. It does not start a paid mission. Default CLI entries are explicitly labeled DEFAULT; unavailable CLI entries have an orange `!` marker. A removed or renamed profile produces an error instead of falling back to another account. Large inventories get MORE subpages; profile selection data stays outside the public source.
 
@@ -87,7 +87,17 @@ The bridge is not bundled or implemented by this project. AGY and other harnesse
 
 ## Runtime state and limits
 
-Preferences, inventories you save, mission receipts, context snapshots, bridge dependencies and generated Stream Deck exports belong under `%LOCALAPPDATA%\AI Dev`, outside the checkout. Set `AI_DEV_DATA_DIR` to override this location. Do not set it inside a repository you publish.
+Preferences, inventories you save, mission receipts, context snapshots, bridge dependencies and generated Stream Deck exports belong under **`%LOCALAPPDATA%\AIDev`**, outside the checkout. The app-created directory name has no spaces. Set `AI_DEV_DATA_DIR` to override this location. Do not set it inside a repository you publish. Paths containing spaces are still accepted and correctly quoted when selected by the user.
+
+On upgrade, the launcher copies legacy `%LOCALAPPDATA%\AI Dev` data into `AIDev` once, preserving existing destination files and retaining the old directory as a backup. Runtime references in copied settings/receipts are updated; objectives are preserved literally. Generated shortcuts and deck archives are rebuilt for the new path. Run `python scripts/migrate_data.py` to perform the migration explicitly. Import a newly generated deck profile after migration; old imported profiles still reference their old shortcuts. Existing running processes are not restarted.
+
+## Engineering diagnostics and session evidence
+
+**Sessions** opens without running PowerShell discovery, so unavailable harnesses or startup-profile failures cannot block access to recorded sessions. Unreadable directories and corrupt receipts produce an inline warning; readable sessions remain available. Startup and UI callback errors are visible and logged privately to `AIDev/logs/aidev.log` (one previous file is retained after rotation). If that folder is itself inaccessible, the error is displayed without claiming a log was saved.
+
+Select a session to open its JSON receipt or Git snapshot as text, or copy an **English handoff** containing its objective, exact profile, observed state and evidence paths. Copying does not send data to an AI. Missing artifacts produce an explicit error. These are AI Dev-launched session receipts, not an inventory of every conversation in every provider.
+
+The **Diagnostics** tab and **HEALTH / DIAG**, **GIT**, **LOGS / JOURNAUX** keys expose real tool/profile availability, data-directory write access, presence of configured MCP bridge files, local Git branch/changes/worktrees and private application logs. Checks run in background workers. Git inspection performs no fetch or mutation. Tool detection does not read credentials or prove sign-in; MCP file presence is not a connectivity test. Physical key labels remain static after import; current results appear in the panel. See [engineering priorities](docs/ENGINEERING.md) for proposed additions and their evidence requirements.
 
 Git snapshots contain metadata only: status, diff statistics and recent commit subjects. Each mission keeps its own snapshot. The app does not read source contents or authentication files. Snapshot metadata and your objectives may still be confidential; do not publish them.
 

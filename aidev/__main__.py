@@ -5,6 +5,8 @@ from .storage import settings
 
 
 def main():
+    from .migration import migrate_legacy
+    migrate_legacy()
     parser = argparse.ArgumentParser(description='AI Dev: local AI harness and Stream Deck control panel')
     parser.add_argument('--discover', action='store_true', help='Print local inventory; contains private paths, do not publish it.')
     parser.add_argument('--run', type=Path, help=argparse.SUPPRESS)
@@ -13,7 +15,7 @@ def main():
     parser.add_argument('--deck-language', choices=['en','fr'], help='Language of the Stream Deck profile to refresh.')
     parser.add_argument('--url', help='HTTP(S) URL for an explicit browser launch.')
     parser.add_argument('--web-context', choices=['work','personal'])
-    parser.add_argument('--action', choices=['mission', 'context', 'status', 'codex', 'claude', 'agy','terminal','files','guide','browser','web','web-work','web-personal','factory','factory-status','cursor','vscode','orca','monitor','deck-refresh'], default='mission')
+    parser.add_argument('--action', choices=['mission', 'context', 'status', 'codex', 'claude', 'agy','terminal','files','guide','browser','web','web-work','web-personal','factory','factory-status','cursor','vscode','orca','monitor','deck-refresh','health','git','logs'], default='mission')
     args = parser.parse_args()
     if args.profile_id or args.action == 'deck-refresh':
         try:
@@ -63,6 +65,14 @@ def main():
     elif args.action == 'status':
         from .ui import Panel
         Panel(initial_tab='activity').run()
+    elif args.action in ('health','git'):
+        from .ui import Panel
+        panel=Panel(initial_tab='engineering')
+        panel.root.after(100,panel.refresh_health if args.action=='health' else panel.refresh_git)
+        panel.run()
+    elif args.action == 'logs':
+        from .engineering import open_logs
+        open_logs()
     elif args.action == 'factory-status':
         from .ui import Panel
         Panel(initial_tab='factory').run()
@@ -96,4 +106,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    from .errors import run
+    run(main)

@@ -52,7 +52,7 @@ function Get-AIDevCatalog {
         }
     }
     # Additional launchers are explicit local registrations, never guessed from arbitrary function names.
-    $runtimeRoot = if ($env:AI_DEV_DATA_DIR) { $env:AI_DEV_DATA_DIR } else { Join-Path $env:LOCALAPPDATA 'AI Dev' }
+    $runtimeRoot = if ($env:AI_DEV_DATA_DIR) { $env:AI_DEV_DATA_DIR } else { Join-Path $env:LOCALAPPDATA 'AIDev' }
     $registration = Join-Path $runtimeRoot 'profiles.local.json'
     if (Test-Path -LiteralPath $registration) {
         foreach ($item in @(Get-Content -LiteralPath $registration -Raw | ConvertFrom-Json)) {

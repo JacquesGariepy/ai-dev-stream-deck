@@ -8,14 +8,19 @@ from .i18n import resolve_language, tr, windows_locale
 from .runtime import capture_context, open_sessions, prepare, spawn_terminal
 from .storage import save_settings, settings
 from .operations import Operations
+from .engineering import EngineeringUI
 
 
-class Panel(Operations):
+class Panel(Operations, EngineeringUI):
     def __init__(self, initial_tool=None, initial_tab='mission', initial_selection=None):
         self.preferences = settings()
         self.preference = self.preferences.get('language', 'auto')
         self.language = resolve_language(self.preference)
-        self.catalog = discover()
+        self.catalog_error = None
+        self.catalog = {'entries':[]}
+        if initial_tab == 'mission':
+            try:self.catalog = discover()
+            except Exception as error:self.catalog_error = str(error)
         selected_entry = None
         if initial_selection:
             selected_entry = find_entry(self.catalog, initial_selection['tool'], initial_selection['profile'], initial_selection['command'])
@@ -23,6 +28,7 @@ class Panel(Operations):
                 raise ValueError(tr('profile_removed', self.language))
             initial_tool = selected_entry['tool']
         self.root = tk.Tk()
+        self.root.report_callback_exception = lambda kind, value, trace: self.error(value.with_traceback(trace))
         self.root.geometry('980x800')
         self.root.minsize(920, 760)
         self.project = tk.StringVar(value=self.preferences.get('project', str(Path.home())))
@@ -34,14 +40,14 @@ class Panel(Operations):
         if selected_entry:
             self.profile.set(next(label for label, row in self.profile_rows.items() if row == selected_entry))
             self.update_status()
-        self.notebook.select({'mission':self.mission_frame, 'activity':self.activity_frame, 'factory':self.factory_frame}[initial_tab])
+        self.notebook.select({'mission':self.mission_frame, 'activity':self.activity_frame, 'factory':self.factory_frame,'engineering':self.engineering_frame}[initial_tab])
         if initial_tab == 'factory':
             self.refresh_factory()
         self.root.after(4000, self.tick)
 
     def tick(self):
-        self.refresh_activity()
-        self.root.after(4000, self.tick)
+        try:self.refresh_activity()
+        finally:self.root.after(4000, self.tick)
 
     def text(self, key):
         return tr(key, self.language)
@@ -79,9 +85,11 @@ class Panel(Operations):
         self.mission_frame = ttk.Frame(self.notebook, padding=12)
         self.activity_frame = ttk.Frame(self.notebook, padding=12)
         self.factory_frame = ttk.Frame(self.notebook, padding=12)
-        for tab, key in ((self.mission_frame,'mission_tab'),(self.activity_frame,'activity_tab'),(self.factory_frame,'factory_tab')):
+        self.engineering_frame = ttk.Frame(self.notebook, padding=12)
+        for tab, key in ((self.mission_frame,'mission_tab'),(self.activity_frame,'activity_tab'),(self.factory_frame,'factory_tab'),(self.engineering_frame,'engineering_tab')):
             self.notebook.add(tab, text=self.text(key))
         self.render_operations(self.activity_frame, self.factory_frame)
+        self.render_engineering(self.engineering_frame)
         frame = self.mission_frame
         ttk.Label(frame, text=self.text('project')).pack(anchor='w')
         project_row = ttk.Frame(frame); project_row.pack(fill='x', pady=(4, 15))
@@ -123,6 +131,11 @@ class Panel(Operations):
         self.launch_button = ttk.Button(bottom, text=self.text('launch'), command=lambda: self.submit(True))
         self.launch_button.pack(side='right', padx=8)
         self.update_profiles()
+        self.notebook.bind('<<NotebookTabChanged>>',self.tab_changed)
+
+    def tab_changed(self, _):
+        if self.notebook.select()==str(self.mission_frame) and not self.catalog['entries'] and not self.catalog_error and not getattr(self,'detecting',False):
+            self.refresh()
 
     def rows(self):
         return [row for row in self.catalog['entries'] if row['tool'] == self.tool.get()]
@@ -145,6 +158,7 @@ class Panel(Operations):
         if row:
             key = 'missing' if not row['available'] else ('uninitialized' if row['initialized'] is False else 'ready')
         value = self.text(key)
+        if self.catalog_error:value += '\n'+self.catalog_error
         adapter = self.tool.get() in MISSION_ADAPTERS
         if not adapter and self.tool.get():
             value += '\n' + self.text('unknown_adapter')
@@ -152,11 +166,21 @@ class Panel(Operations):
         self.launch_button.configure(state='normal' if row and row['available'] and adapter else 'disabled')
 
     def refresh(self):
-        try:
-            self.catalog = discover()
-            self.render()
-        except Exception as error:
-            self.error(error)
+        if getattr(self,'detecting',False):return
+        self.detecting=True
+        def completed(ok,result):
+            self.detecting=False
+            if ok:
+                self.catalog=result
+                self.catalog_error=None
+                tab=self.notebook.index(self.notebook.select())
+                self.render()
+                self.notebook.select(tab)
+            else:
+                self.catalog_error=str(result)
+                self.update_status()
+                self.error(result)
+        self.background(discover,completed)
 
     def browsers(self):
         import subprocess
@@ -196,7 +220,8 @@ class Panel(Operations):
             self.error(error)
 
     def error(self, error):
-        messagebox.showerror(self.text('error'), str(error), parent=self.root)
+        from .errors import report
+        report(error,parent=self.root)
 
     def run(self):
         self.root.mainloop()

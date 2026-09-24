@@ -32,18 +32,34 @@ def process_alive(pid):
         return None
 
 
-def receipts(limit=50):
-    paths = sorted((data_dir()/'missions').glob('*.json'), key=lambda p: p.stat().st_mtime, reverse=True)
-    rows = []
-    for path in paths:
-        if path.name.endswith('.launch.json'):
+def receipts(limit=50, issues=None):
+    issues = issues if issues is not None else []
+    directory = data_dir()/'missions'
+    paths = []
+    try:
+        candidates = list(directory.iterdir())
+    except FileNotFoundError:
+        return []
+    except OSError as error:
+        issues.append(str(error))
+        return []
+    for path in candidates:
+        if path.suffix != '.json' or path.name.endswith('.launch.json'):
             continue
+        try:paths.append((path.stat().st_mtime,path))
+        except OSError as error:issues.append(f'{path.name}: {error}')
+    paths.sort(key=lambda item:item[0],reverse=True)
+    rows = []
+    for _, path in paths:
         try:
             row = read_json(path)
-            if not isinstance(row, dict) or not row.get('id'):
+            if not isinstance(row, dict) or not isinstance(row.get('id'),str) or not row['id']:
+                issues.append(f'{path.name}: invalid session receipt')
                 continue
-        except (ValueError, OSError):
+        except (ValueError, OSError) as error:
+            issues.append(f'{path.name}: {error}')
             continue
+        row['receipt_path'] = str(path)
         row['observed_status'] = row.get('status', 'unknown')
         if row['observed_status'] == 'running' and process_alive(row.get('runner_pid')) is False:
             row['observed_status'] = 'interrupted'

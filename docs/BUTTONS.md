@@ -1,6 +1,6 @@
 # Complete Stream Deck button map
 
-The 15-key layout has 65 base positions: 15 home, 15 prompts, 15 editor, 11 web, 9 apps, plus generated harness/profile pages. Each subpage has a Back button. All hardware names follow the generated FR/EN language; account names retain their actual names. Agent prompt contents and MCP action descriptions remain English.
+The 15-key layout has 68 base positions: 15 home, 15 prompts, 15 editor, 11 web, 12 apps, plus generated harness/profile pages. Each subpage has a Back button. All hardware names follow the generated FR/EN language; account names retain their actual names. Agent prompt contents and MCP action descriptions remain English.
 
 | Page | Controls |
 |---|---|
@@ -8,7 +8,7 @@ The 15-key layout has 65 base positions: 15 home, 15 prompts, 15 editor, 11 web,
 | Prompts | Back; Implement, Plan, Debug, Review, Tests, Handoff, Refactor, Explain, Performance, Security, Docs, Context, Usage/costs, PR draft |
 | Editor | Back; Commands, Find file, Search, Save, Format, Copy, Paste, Panel, Problems, Rename, Definition, Undo, Redo, Escape |
 | AI Web | Back; Browser settings, Work, Personal, ChatGPT, Claude, Gemini, Perplexity, GitHub, Pull requests, Issues |
-| Apps | Back; Cursor desktop, VS Code, Orca, CPU/RAM, Capture, Files, Guide, Settings/language |
+| Apps | Back; Cursor desktop, VS Code, Orca, CPU/RAM, Capture, Files, Guide, Settings/language, Health/Diag, Git, Logs/Journaux |
 | Profiles | Back; Mission, Refresh, each detected harness, More when needed |
 | Each harness | Back; Panel, Refresh, each exact detected profile/default CLI, More when needed |
 
@@ -36,6 +36,7 @@ These target the currently focused app and use common VS Code/Cursor defaults; c
 - **Codex / Claude / AGY** open their profile folders when detected. **Profiles** lists all detected harnesses, including unavailable wrappers marked `!`. A profile key opens the panel with its exact command selected, overriding the remembered account. No agent starts until you choose Open session or Launch mission.
 - **Refresh / Actualiser** redetects profiles and opens the standard profile import. Install the generated profile to update hardware labels. Detection is not a live hardware watcher; stale profile keys refuse to silently select another account.
 - **Sessions** opens live receipt observations and the next suggested verification/diagnosis mission.
+- **Health / Diag** checks installed tools and storage access. **Git** inspects the currently selected project. **Logs / Journaux** opens private error logs. Results are refreshed in AI Dev; physical labels are not live status badges.
 - **Factory** opens the native local workbench through your chosen Chrome/Edge context. **Control** reads Factory status and blockers.
 - **Settings** opens the panel language selector. Choose Français or English, then Update Stream Deck: profiles + language and install the generated profile. Both imported languages can coexist.
 - Web context controls do not switch a CLI account or a browser's internal profile.
