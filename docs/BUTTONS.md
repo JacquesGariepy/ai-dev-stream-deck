@@ -23,9 +23,11 @@ A harness with exactly one detected profile opens that exact profile in one pres
 
 | Page | Controls |
 |---|---|
-| AGENTIC | Back; mission workflows PLAN, IMPLEMENT, REVIEW, DEBUG, TEST, HANDOFF (panel opens with the workflow preselected); Sessions, Context, Profiles, Prompts, AI Web, MCP, AI Apps, Orchestrator |
+| AGENTIC | Back; mission workflows PLAN, IMPLEMENT, REVIEW, DEBUG, TEST, HANDOFF (panel opens with the workflow preselected and explains that this is an AI mission); Sessions, Context, Profiles, Prompts, AI Web, MCP, AI Apps, Orchestrator |
 | GIT | Back; Status, Diff, Log, Fetch, Add -p, Commit, Pull (fast-forward only), Push (confirmed), New branch (name validated by Git), Switch (local branch list), Stash, Stash pop, Git panel (read-only), Git Web |
 | BUILD / TEST | Back; Build, Test, Lint, Dev server, Types, Format (each runs the matching project script), All tasks, Debug folder, Terminal |
+
+**AGENTIC → TEST** prepares an AI mission and requires an English objective. **BUILD / TEST → TEST** directly runs the detected test task for the selected project.
 | DEV | Back; Terminal, Editor, Build/Test, Debug, Git, Project, Files, Diagnostics, Logs, Dev Apps, then up to four of: Cursor / VS Code (open the project), Docker Desktop, GitHub Desktop, Postman… |
 | Editor | Back; Commands, Find file, Search, Save, Format, Copy, Paste, Panel, Problems, Rename, Definition, Undo, Redo, Escape |
 | Debug | Back; Start F5, Stop, Restart, Breakpoint, Step over/into/out, Build |

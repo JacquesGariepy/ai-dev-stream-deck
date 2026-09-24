@@ -51,6 +51,9 @@ No orchestrator is forced on the user. Run harnesses directly, connect an existi
 
 PLAN, IMPLEMENT, REVIEW, DEBUG, TEST and HANDOFF open the control panel with the matching workflow selected. The user reviews the English objective and launches it explicitly.
 
+> [!NOTE]
+> **AGENTIC > TEST** prepares an AI testing mission. **BUILD / TEST > TEST** runs the selected project's detected test suite directly in a terminal.
+
 ### Windows controls
 
 ![System page with apps, windows, desktops, monitoring, capture, clipboard and settings controls](docs/images/stream-deck-system.png)

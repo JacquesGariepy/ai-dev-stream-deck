@@ -18,6 +18,7 @@ class CatalogWindow:
         self.root.protocol('WM_DELETE_WINDOW',self.close)
         frame=ttk.Frame(self.root,padding=18);frame.pack(fill='both',expand=True)
         ttk.Label(frame,text=self.text(title),font=('Segoe UI',18,'bold')).pack(anchor='w')
+        self.status=tk.StringVar();ttk.Label(frame,textvariable=self.status,wraplength=760).pack(anchor='w',pady=(6,2))
         self.query=tk.StringVar()
         ttk.Label(frame,text=self.text('catalog_filter')).pack(anchor='w',pady=(10,0))
         ttk.Entry(frame,textvariable=self.query).pack(fill='x',pady=5)
@@ -30,7 +31,6 @@ class CatalogWindow:
         self.tree.configure(yscrollcommand=scroll.set);self.tree.pack(fill='both',expand=True)
         self.tree.bind('<<TreeviewSelect>>',lambda _:self.selection())
         self.detail=tk.Text(frame,height=9,wrap='word',state='disabled');self.detail.pack(fill='x',pady=10)
-        self.status=tk.StringVar();ttk.Label(frame,textvariable=self.status,wraplength=760).pack(anchor='w')
         buttons=ttk.Frame(frame);buttons.pack(fill='x',pady=8);self.buttons=buttons
         self.refresh_button=ttk.Button(buttons,text=self.text('reload'),command=self.refresh);self.refresh_button.pack(side='left')
         self.open_button=ttk.Button(buttons,text=self.text('catalog_open'),command=self.submit,state='disabled')
@@ -39,7 +39,8 @@ class CatalogWindow:
 
     def refresh(self):
         if self.busy:return
-        self.busy=True;self.status.set(self.text('loading'));self.refresh_button.configure(state='disabled')
+        self.busy=True;self.status.set(self.text('catalog_loading'));self.refresh_button.configure(state='disabled')
+        self.placeholder(self.text('catalog_loading'))
         def worker():
             try:self.queue.put((True,self.loader()))
             except Exception as error:self.queue.put((False,str(error)))
@@ -55,7 +56,13 @@ class CatalogWindow:
         if ok:
             self.entries=result;self.filter();self.status.set(self.text('catalog_count').format(count=len(result))+(('\n'+self.notice()) if self.notice else ''))
             if self.identifier and not any(e['id']==self.identifier for e in result):self.status.set(self.text('catalog_removed'))
-        else:self.status.set(result)
+        else:
+            self.status.set(result);self.placeholder(result)
+
+    def placeholder(self, message):
+        self.tree.delete(*self.tree.get_children())
+        self.tree.insert('','end',iid='__status__',values=(message,''))
+        self.open_button.configure(state='disabled')
 
     def filter(self):
         self.tree.delete(*self.tree.get_children())
@@ -64,6 +71,8 @@ class CatalogWindow:
             if self.query.get().casefold() not in (e['name']+' '+origin).casefold():continue
             self.tree.insert('','end',iid=e['id'],values=(e['name'],origin))
             if e['id']==self.identifier:self.tree.selection_set(e['id']);self.tree.see(e['id'])
+        if not self.tree.get_children():
+            self.placeholder(self.text('catalog_no_match' if self.query.get() else 'catalog_empty'))
         self.selection()
 
     def selection(self):

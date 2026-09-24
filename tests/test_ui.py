@@ -10,6 +10,37 @@ from aidev.storage import data_dir, save_json
 
 @unittest.skipUnless(os.name == 'nt', 'Windows Tk interface')
 class PanelTests(unittest.TestCase):
+    def test_agentic_test_explains_direct_project_test_difference(self):
+        from aidev.ui import Panel
+        with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ,{'AI_DEV_DATA_DIR':folder}), patch('aidev.ui.discover',return_value={'entries':[]}):
+            panel=Panel(initial_workflow='test')
+            try:
+                panel.root.withdraw();panel.root.update()
+                def labels(widget):
+                    values=[]
+                    for child in widget.winfo_children():
+                        try:values.append(str(child.cget('text')))
+                        except Exception:pass
+                        values.extend(labels(child))
+                    return values
+                self.assertTrue(any(panel.text('workflow_test_note') in value for value in labels(panel.root)))
+            finally:panel.root.destroy()
+
+    def test_empty_catalog_shows_an_actionable_state(self):
+        from aidev.catalog_ui import CatalogWindow
+        with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ,{'AI_DEV_DATA_DIR':folder}):
+            window=CatalogWindow('applications',lambda:[],lambda _: '')
+            try:
+                window.root.withdraw()
+                deadline=time.monotonic()+2
+                while window.busy and time.monotonic()<deadline:
+                    window.root.update();time.sleep(.02)
+                rows=window.tree.get_children()
+                self.assertEqual(len(rows),1)
+                self.assertIn(window.text('catalog_empty'),window.tree.item(rows[0],'values'))
+                self.assertIn('0',window.status.get())
+            finally:window.close()
+
     def test_window_is_ready_while_profile_discovery_is_blocked(self):
         import threading
         from aidev.ui import Panel

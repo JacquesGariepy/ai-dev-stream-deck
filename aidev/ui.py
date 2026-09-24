@@ -29,7 +29,8 @@ class Panel(Operations, EngineeringUI):
         self.project = tk.StringVar(value=self.preferences.get('project', ''))
         self.tool = tk.StringVar(value=initial_tool or self.preferences.get('last_tool', ''))
         self.profile = tk.StringVar()
-        self.workflow = initial_workflow if initial_workflow in WORKFLOWS else 'implement'
+        self.initial_workflow = initial_workflow if initial_workflow in WORKFLOWS else None
+        self.workflow = self.initial_workflow or 'implement'
         self.objective_value = ''
         self.render()
         self.notebook.select({'mission':self.mission_frame, 'activity':self.activity_frame, 'factory':self.factory_frame,'engineering':self.engineering_frame}[initial_tab])
@@ -63,6 +64,10 @@ class Panel(Operations, EngineeringUI):
         frame = ttk.Frame(self.root, padding=22)
         frame.pack(fill='both', expand=True)
         ttk.Label(frame, text=self.text('heading'), font=('Segoe UI', 19, 'bold')).pack(anchor='w')
+        if self.initial_workflow:
+            message=self.text('workflow_mode').format(workflow=self.text(self.workflow))
+            if self.workflow=='test':message+='\n'+self.text('workflow_test_note')
+            ttk.Label(frame,text=message,wraplength=900,foreground='#5b4bb7').pack(anchor='w',pady=(5,0))
         top = ttk.Frame(frame); top.pack(fill='x', pady=12)
         ttk.Label(top, text=self.text('language')).pack(side='left')
         language = ttk.Combobox(top, state='readonly', values=['Auto', 'Français', 'English'], width=15)
