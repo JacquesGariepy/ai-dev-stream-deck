@@ -16,6 +16,9 @@ def main():
     parser.add_argument('--mcp-id', help='Inspect a locally detected MCP configuration.')
     parser.add_argument('--windows-action', help='Open a named Windows utility.')
     parser.add_argument('--task-run', type=Path, help=argparse.SUPPRESS)
+    parser.add_argument('--task-kind', choices=['build','test','lint','dev','types','format'], help='Run the matching project task, or choose one when none matches.')
+    parser.add_argument('--git', choices=['status','diff','log','fetch','pull','stage','commit','stash','unstash','push','branch','switch'], help='Run one Git action visibly in the selected project.')
+    parser.add_argument('--workflow', choices=['implement','plan','debug','review','test','handoff'], help='Preselect a mission workflow in the panel.')
     parser.add_argument('--deck-language', choices=['en','fr'], help='Language of the Stream Deck profile to refresh.')
     parser.add_argument('--url', help='HTTP(S) URL for an explicit browser launch.')
     parser.add_argument('--web-context', choices=['work','personal'])
@@ -24,6 +27,12 @@ def main():
     if args.task_run:
         from .project_tasks import run_task
         raise SystemExit(run_task(args.task_run))
+    elif args.task_kind:
+        from .project_tasks import launch_kind
+        launch_kind(args.task_kind)
+    elif args.git:
+        from .git_actions import run as run_git
+        run_git(args.git)
     elif args.windows_action:
         from .windows_tools import open_windows_action
         open_windows_action(args.windows_action)
@@ -133,7 +142,7 @@ def main():
             os.startfile(str(Path(__file__).parent.parent / 'README.md') if args.action == 'guide' else project)
     else:
         from .ui import Panel
-        Panel(args.tool or (args.action if args.action != 'mission' else None)).run()
+        Panel(args.tool or (args.action if args.action != 'mission' else None), initial_workflow=args.workflow).run()
 
 
 if __name__ == '__main__':

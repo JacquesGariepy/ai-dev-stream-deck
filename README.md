@@ -14,7 +14,7 @@ A fresh clone contains no user configuration. The first launch has no selected p
 
 - Windows, Python 3.11+ with Tk, and PowerShell 7 for mission launches.
 - An installed AI CLI is needed to launch an AI session. The panel itself opens without one. Git is optional for context snapshots.
-- Stream Deck software and a 15-key device for the supplied hardware layout. The desktop panel works without Stream Deck.
+- Stream Deck software and a Stream Deck (Mini, Neo, +, MK.2 or XL; the 15-key MK.2 layout is hardware-verified). The desktop panel works without Stream Deck.
 - Node.js 18+ and npm only if you enable the optional Elgato MCP bridge.
 
 ## Start
@@ -63,19 +63,32 @@ All app-authored agent instructions, workflow prompts and the requested agent re
 pwsh -File scripts/Install.ps1 -StreamDeck
 ```
 
-Import the `.streamDeckProfile` path printed by the installer. It is generated for **your workstation**, with local shortcut paths and the detected device. Never commit that generated archive. It is not a portable binary preset.
+Import the `.streamDeckProfile` path printed by the installer. It is generated for **your workstation and your device**, with local shortcut paths. Never commit that generated archive. It is not a portable binary preset.
 
-The first page is a general-purpose **Daily** desk: DEV, AGENTIC, detected applications, Windows tools, browser chooser, files, photo/video, media controls, clipboard history, Calculator, Notepad, CPU/RAM tools, desktop, settings and refresh. **Desktop / Bureau** opens display selection, monitor arrangement, virtual-desktop navigation, window movement between monitors and show/minimize/restore controls. Spotify is one detected application rather than a required dependency. Multimedia keys target the active Windows media session; no media account or plugin is bundled. Capture is omitted when Snipping Tool is unavailable.
+The deck is an **expert cockpit** built from a declarative layout (`aidev/deck_layout.py`) and exported for the detected model: Mini (3×2), Neo and + (4×2), original and MK.2 (5×3), XL (8×4). Only the MK.2 is verified on hardware; for an unlisted model use `python scripts/stream_deck.py --grid 5x3` (saved locally). On the 15-key home:
 
-**DEV** is workstation-first: it features up to four useful installed tools such as Docker Desktop, GitHub Desktop, Visual Studio Code, Cursor or Postman directly on the page. **DEV APPS** contains every detected development application. Terminal choice, editor shortcuts, Git, project selection, diagnostics, common debugging keys and real project tasks read from package, Python, Compose and Make manifests remain available. Opening the task list runs nothing; the user explicitly selects a task. **AGENTIC** groups missions, detected harness/account profiles, sessions, English prompts, local MCP declarations and the optional external orchestrator. When installed, Claude Desktop and ChatGPT Desktop receive direct keys with distinct original icons; **AI APPS** retains the complete detected AI application list. Each folder has a working Back key.
+| Row | Keys |
+|---|---|
+| Agentic | MISSION · three detected harnesses · SESSIONS |
+| Dev | TERMINAL · EDITOR · GIT · BUILD/TEST · PROMPTS |
+| Folders | AGENTIC · DEV · SYSTEM · MEDIA · REFRESH |
 
-Up to three available harnesses, sorted by name, appear in AGENTIC. **PROFILES** lists every detected harness. Each profile key opens the mission panel with that exact command selected, without starting a paid mission. Removed selections never fall back to another account; unavailable CLI entries retain their orange `!` marker. Large profile, application and MCP inventories receive MORE subpages. Desktop-app keys preserve the exact Start-menu identity detected locally.
+- **Fixed positions:** BACK is always top-left on subpages, MORE always bottom-right; harness slots keep useful keys when fewer harnesses exist, so muscle memory never breaks.
+- **Colour zones:** violet agentic, teal dev, orange Git, yellow build/test/debug, blue system, green media, grey navigation, red unavailable/disruptive.
+- **Agentic in one or two presses:** a harness with a single profile opens it directly; AGENTIC opens the panel with PLAN, IMPLEMENT, REVIEW, DEBUG, TEST or HANDOFF preselected. Nothing starts before Launch.
+- **Git without leaving the deck:** Status, Diff, Log, Fetch, Add -p, Commit, Pull `--ff-only`, confirmed Push, validated New branch, Switch, Stash/Pop. Each runs one fixed `git` command visibly in a terminal in the selected project; no force-push, reset or delete.
+- **Build / Test / Lint / Dev / Types / Format** run the project's own matching script, or open the task list when none matches.
+- **XL** puts the mission workflows, BUILD/TEST/LINT and STATUS/PULL/COMMIT/PUSH directly on home; small decks keep the same priority order on MORE pages.
+
+Daily Windows controls (apps, Windows settings, virtual desktops and monitors, CPU/RAM tools, capture, clipboard, calculator, lock) live under **SYSTEM**; playback under **MEDIA**. Detected desktop apps, MCP declarations and harness profiles get paginated folders. See the [complete button map](docs/BUTTONS.md).
+
+Shortcuts are created from a generated manifest (`AIDev/stream-deck/shortcuts.json`) validated by `Create-Shortcuts.ps1`: plain names and app-authored launcher arguments only. Legacy shortcut names are still created so previously imported profiles keep working.
 
 The MCP inventory reads known Codex, Claude Desktop, Claude Code, Cursor, VS Code, Windsurf, selected-project and user-added JSON/JSONC/TOML configuration files. It creates one inspection key per declaration without retaining command arguments, URLs, environment variables or headers. It does not start a server or claim that its connection and tools work.
 
-Icons are generated from original code, packaged inside the local profile and require no downloaded icon pack or extra Python library. Labels follow the selected FR/EN language. Keyboard shortcuts target the active application; English prompt buttons insert text without pressing Enter. See the [complete button map](docs/BUTTONS.md).
+Icons are drawn from original code (anti-aliased, tinted by zone), packaged inside the local profile and require no downloaded icon pack or extra Python library. Labels follow the selected FR/EN language. Keyboard shortcuts target the active application; English prompt buttons insert text without pressing Enter.
 
-Generation audits every key before import: all pages must be reachable, native folders must have one parent, action identifiers must be unique, icons must be valid PNG files and every Open key must point to a generated local shortcut. The audit does not execute applications, lock Windows, switch displays or run project tasks.
+Generation audits every key before import: all pages reachable, one parent per native folder, BACK top-left on every subpage, keys inside the device grid, unique action identifiers, valid PNG icons and a generated local shortcut behind every Open key. The audit does not execute applications, lock Windows, switch displays, run Git or project tasks.
 
 ## Choose an installed Chrome, Edge, Firefox or Brave browser
 
@@ -115,7 +128,7 @@ A receipt records a prepared/running/exited/launch_error process state. **Activi
 
 Completed or interrupted sessions offer **Prepare next mission**: an English verification or diagnosis objective, with the same project and exact profile when still available. A prepared receipt with no start confirmation after 30 seconds is shown as unconfirmed and offers diagnosis too. You review and launch it explicitly. This does not resume the original provider conversation or automatically retry a failed task.
 
-When several compatible Stream Deck devices are configured, generation requires an explicit selection: `python scripts/stream_deck.py --device-id "<device-id-shown-by-the-tool>"`. That choice is saved only locally. The supplied layout currently supports the 15-key `20GBA9901` model; unsupported models are reported clearly and the desktop app remains usable. Generated device archives must not be published.
+When several Stream Deck devices are configured, generation requires an explicit selection: `python scripts/stream_deck.py --device-id "<device-id-shown-by-the-tool>"`. That choice is saved only locally. Mini, Neo, +, original, MK.2 and XL grids are generated automatically; `--grid COLSxROWS` covers other models. Only the MK.2 layout is verified on hardware, and the desktop app remains usable without a device. Generated device archives must not be published.
 
 ## Optional external orchestrators
 

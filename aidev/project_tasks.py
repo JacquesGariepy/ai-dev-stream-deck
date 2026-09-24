@@ -53,9 +53,53 @@ def tasks():
     return sorted({e['id']:e for e in result}.values(),key=lambda e:e['name'])
 
 
+TASK_KINDS={
+    'build':('build','compile','bundle'),
+    'test':('test','tests','unit','check:test'),
+    'lint':('lint','check','eslint','ruff'),
+    'dev':('dev','start','serve','run','watch'),
+    'types':('typecheck','type-check','types','tsc','mypy'),
+    'format':('format','fmt','prettier'),
+}
+
+
+def script_name(task):
+    """Short name of a detected task: npm/make script name, or 'test' for Python test runners."""
+    args=task.get('arguments',[])
+    if task['name'] in ('Python: pytest','Python: unittest discovery'):return 'test'
+    if len(args)==2 and args[0]=='run':return args[1]
+    if task['name'].startswith('make ') and len(args)==1:return args[0]
+    return ''
+
+
+def task_for_kind(kind, rows=None):
+    """Pick the project task matching a direct deck key (BUILD, TEST, ...). Exact names win over prefixes."""
+    if kind not in TASK_KINDS:raise ValueError('Unknown task kind.')
+    rows=tasks() if rows is None else rows
+    names=[(script_name(row),row) for row in rows]
+    for candidate in TASK_KINDS[kind]:
+        match=next((row for name,row in names if name==candidate),None)
+        if match:return match
+    for candidate in TASK_KINDS[kind]:
+        match=next((row for name,row in names if name.startswith(candidate+':')),None)
+        if match:return match
+    return None
+
+
+def launch_kind(kind):
+    """Run the matching task immediately; otherwise open the task list so nothing unexpected runs."""
+    task=task_for_kind(kind)
+    if task:return launch(task)
+    task_dialog(notice=kind)
+
+
 def launch_task(identifier):
     task=next((e for e in tasks() if e['id']==identifier),None)
     if not task:raise ValueError('The selected project task is no longer available. Refresh the task list.')
+    return launch(task)
+
+
+def launch(task):
     path=data_dir()/'task-requests'/(str(uuid.uuid4())+'.json');save_json(path,task)
     python=str(Path(sys.executable).with_name('python.exe')) if os.name=='nt' else sys.executable
     command=[python,str(Path(__file__).resolve().parents[1]/'launch.py'),'--task-run',str(path.resolve())]
@@ -82,12 +126,13 @@ def run_task(path):
     return code
 
 
-def task_dialog():
+def task_dialog(notice=None):
     from .catalog_ui import CatalogWindow
     from tkinter import ttk,filedialog
     from .i18n import tr,resolve_language
     language=resolve_language(settings().get('language','auto'))
-    window=CatalogWindow('project_tasks',tasks,lambda e:e['project']+'\n'+subprocess.list2cmdline([e['executable'],*e['arguments']])+'\n\n'+tr('task_limits',language),launch_task)
+    message=(lambda:tr('task_kind_missing',language).format(kind=notice.upper())) if notice else None
+    window=CatalogWindow('project_tasks',tasks,lambda e:e['project']+'\n'+subprocess.list2cmdline([e['executable'],*e['arguments']])+'\n\n'+tr('task_limits',language),launch_task,notice=message)
     window.open_button.configure(text=tr('task_run',language))
     def choose():
         value=filedialog.askdirectory(parent=window.root)

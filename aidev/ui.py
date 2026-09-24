@@ -12,7 +12,7 @@ from .engineering import EngineeringUI
 
 
 class Panel(Operations, EngineeringUI):
-    def __init__(self, initial_tool=None, initial_tab='mission', initial_selection=None):
+    def __init__(self, initial_tool=None, initial_tab='mission', initial_selection=None, initial_workflow=None):
         self.preferences = settings()
         self.preference = self.preferences.get('language', 'auto')
         self.language = resolve_language(self.preference)
@@ -29,7 +29,7 @@ class Panel(Operations, EngineeringUI):
         self.project = tk.StringVar(value=self.preferences.get('project', ''))
         self.tool = tk.StringVar(value=initial_tool or self.preferences.get('last_tool', ''))
         self.profile = tk.StringVar()
-        self.workflow = 'implement'
+        self.workflow = initial_workflow if initial_workflow in WORKFLOWS else 'implement'
         self.objective_value = ''
         self.render()
         self.notebook.select({'mission':self.mission_frame, 'activity':self.activity_frame, 'factory':self.factory_frame,'engineering':self.engineering_frame}[initial_tab])

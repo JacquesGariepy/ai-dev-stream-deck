@@ -155,7 +155,9 @@ Set-Alias codex-fixture-alias codex-fixture
             self.assertTrue(any('web-work.lnk' in a['Settings'].get('path','') for a in web_actions))
             self.assertTrue(any('browser.lnk' in a['Settings'].get('path','') for a in web_actions))
             prompts=[a for a in actions if a['UUID'].endswith('system.text')]
-            self.assertEqual(len(prompts),len(TEXT_PROMPTS))
+            self.assertEqual(len({a['Settings']['pastedText'] for a in prompts}),len(TEXT_PROMPTS))
+            prompt_page=next(m for m in manifests if m.get('Name')=='prompts')
+            self.assertEqual(sum(a['UUID'].endswith('system.text') for a in prompt_page['Controllers'][0]['Actions'].values()),len(TEXT_PROMPTS))
             for prompt in prompts:
                 self.assertTrue(prompt['Settings']['pastedText'].startswith('Communicate in English.'))
                 self.assertFalse(prompt['Settings']['isSendingEnter'])

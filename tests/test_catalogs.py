@@ -93,15 +93,18 @@ class CatalogTests(unittest.TestCase):
             with zipfile.ZipFile(output) as archive:
                 manifests=[(name,json.loads(archive.read(name))) for name in archive.namelist() if '/Profiles/' in name and name.endswith('manifest.json')]
                 name,page=next(row for row in manifests if row[1]['Name']=='agentic')
+                visible={action['Name'] for action in page['Controllers'][0]['Actions'].values()}
+                self.assertIn('APPS IA',visible);self.assertIn('ORCH',visible)
+                name,page=next(row for row in manifests if row[1]['Name']=='ai-apps')
                 actions=list(page['Controllers'][0]['Actions'].values())
                 self.assertLessEqual(len(actions),15)
+                ordered=[action['Name'] for action in actions if action['UUID'].endswith('system.open')]
+                # Claude and ChatGPT desktop keys come first, after the panel/refresh header.
+                self.assertEqual(ordered[2:4],['ChatGPT Desktop','Claude Desktop'])
                 visible={action['Name']:action for action in actions}
-                self.assertIn('Claude Desktop',visible);self.assertIn('ChatGPT Desktop',visible)
-                self.assertIn('APPS IA',visible);self.assertIn('ORCH',visible)
                 base=name.rsplit('/',1)[0]+'/'
                 for app,icon in (('Claude Desktop','claude-agent.png'),('ChatGPT Desktop','chatgpt-agent.png')):
                     self.assertTrue(visible[app]['States'][0]['Image'].endswith(icon))
                     self.assertTrue(archive.read(base+visible[app]['States'][0]['Image']).startswith(b'\x89PNG'))
-
 
 if __name__=='__main__':unittest.main()

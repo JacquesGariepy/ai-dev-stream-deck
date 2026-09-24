@@ -1,57 +1,22 @@
-param([Parameter(Mandatory)][string]$PythonPath, [Parameter(Mandatory)][string]$LauncherPath, [Parameter(Mandatory)][string]$OutputDirectory, [string]$ProfilesPath, [string]$CatalogPath)
+param(
+    [Parameter(Mandatory)][string]$PythonPath,
+    [Parameter(Mandatory)][string]$LauncherPath,
+    [Parameter(Mandatory)][string]$OutputDirectory,
+    [Parameter(Mandatory)][string]$ManifestPath
+)
+# Creates one .lnk per Stream Deck Open key from the manifest written by stream_deck.py.
+# Each entry is validated: a plain shortcut name and app-authored launcher arguments only.
 $ErrorActionPreference = 'Stop'
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 $shell = New-Object -ComObject WScript.Shell
-if ($CatalogPath) {
-    foreach ($entry in @(Get-Content -LiteralPath $CatalogPath -Raw | ConvertFrom-Json)) {
-        if ($entry.kind -notin @('app','mcp') -or $entry.id -cnotmatch '^[a-f0-9]{64}$') { throw 'Invalid catalog selection.' }
-        $link = $shell.CreateShortcut((Join-Path $OutputDirectory ($entry.kind + '-' + $entry.id + '.lnk')))
-        $link.TargetPath = $PythonPath
-        $link.Arguments = '"' + $LauncherPath + '" --' + $entry.kind + '-id ' + $entry.id
-        $link.WorkingDirectory = Split-Path -Parent $LauncherPath
-        $link.Save()
-    }
-}
-foreach ($utility in @('display','sound','network','bluetooth','storage','apps','downloads','documents','pictures','recycle-bin','calculator','notepad','event-viewer','services')) {
-    $link = $shell.CreateShortcut((Join-Path $OutputDirectory ('windows-' + $utility + '.lnk')))
+$namePattern = '^[a-z0-9][a-z0-9-]{0,120}$'
+$argumentPattern = '^--[a-z][a-z-]*( (--[a-z][a-z-]*|[A-Za-z0-9_.:/=-]+|"https://[A-Za-z0-9_.:/?&=%-]+"))*$'
+foreach ($entry in @(Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json)) {
+    if ($entry.name -cnotmatch $namePattern) { throw 'Invalid shortcut name.' }
+    if ($entry.arguments -cnotmatch $argumentPattern) { throw ('Invalid shortcut arguments for ' + $entry.name) }
+    $link = $shell.CreateShortcut((Join-Path $OutputDirectory ($entry.name + '.lnk')))
     $link.TargetPath = $PythonPath
-    $link.Arguments = '"' + $LauncherPath + '" --windows-action ' + $utility
-    $link.WorkingDirectory = Split-Path -Parent $LauncherPath
-    $link.Save()
-}
-if ($ProfilesPath) {
-    foreach ($selection in @(Get-Content -LiteralPath $ProfilesPath -Raw | ConvertFrom-Json)) {
-        if ($selection.id -cnotmatch '^[a-f0-9]{64}$') { throw 'Invalid profile shortcut identifier.' }
-        $link = $shell.CreateShortcut((Join-Path $OutputDirectory ('profile-' + $selection.id + '.lnk')))
-        $link.TargetPath = $PythonPath
-        $link.Arguments = '"' + $LauncherPath + '" --profile-id ' + $selection.id
-        $link.WorkingDirectory = Split-Path -Parent $LauncherPath
-        $link.Save()
-    }
-}
-foreach ($language in @('en','fr')) {
-    $link = $shell.CreateShortcut((Join-Path $OutputDirectory ('deck-refresh-' + $language + '.lnk')))
-    $link.TargetPath = $PythonPath
-    $link.Arguments = '"' + $LauncherPath + '" --action deck-refresh --deck-language ' + $language
-    $link.WorkingDirectory = Split-Path -Parent $LauncherPath
-    $link.Save()
-}
-foreach ($action in @('mission','codex','claude','agy','context','status','files','terminal','guide','browser','browser-open','spotify','windows-settings','applications','mcp','project-tasks','web-work','web-personal','factory','factory-status','cursor','vscode','orca','monitor','resources','performance','system-info','capture','health','git','logs')) {
-    $link = $shell.CreateShortcut((Join-Path $OutputDirectory ($action + '.lnk')))
-    $link.TargetPath = $PythonPath
-    $link.Arguments = '"' + $LauncherPath + '" --action ' + $action
-    $link.WorkingDirectory = Split-Path -Parent $LauncherPath
-    $link.Save()
-}
-$websites = @{
-    chatgpt='https://chatgpt.com/';claude='https://claude.ai/';gemini='https://gemini.google.com/'
-    perplexity='https://www.perplexity.ai/';github='https://github.com/'
-    'github-pr'='https://github.com/pulls';'github-issues'='https://github.com/issues'
-}
-foreach ($site in $websites.Keys) {
-    $link = $shell.CreateShortcut((Join-Path $OutputDirectory ('web-' + $site + '.lnk')))
-    $link.TargetPath = $PythonPath
-    $link.Arguments = '"' + $LauncherPath + '" --action web --url "' + $websites[$site] + '"'
+    $link.Arguments = '"' + $LauncherPath + '" ' + $entry.arguments
     $link.WorkingDirectory = Split-Path -Parent $LauncherPath
     $link.Save()
 }

@@ -21,4 +21,4 @@ Configuration lives in `%LOCALAPPDATA%/AIDev`, or `AI_DEV_DATA_DIR` when explici
 
 Updating the source preserves existing local choices. To try a clean configuration without modifying an existing one, set `AI_DEV_DATA_DIR` to a separate empty directory for that process.
 
-Supported scope remains Windows with Python/Tk. The supplied Stream Deck layout is qualified for the 15-key `20GBA9901` model; other device layouts need an adapter. Multiple compatible devices require an explicit `--device-id` choice. The desktop panel works without Stream Deck or an installed AI harness.
+Supported scope remains Windows with Python/Tk. The Stream Deck layout adapts to Mini, Neo, +, original, MK.2 and XL grids (only the 15-key MK.2 is hardware-verified); `--grid COLSxROWS` covers other models. Multiple compatible devices require an explicit `--device-id` choice. The desktop panel works without Stream Deck or an installed AI harness.

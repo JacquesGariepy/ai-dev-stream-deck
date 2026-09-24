@@ -37,8 +37,11 @@ class VanillaTests(unittest.TestCase):
             archive=deck.generate(Path(folder)/'deck.zip',{'Model':'test'},'en',Path(folder)/'links',entries,installed_apps={})
             with zipfile.ZipFile(archive) as stream:
                 pages=[json.loads(stream.read(n)) for n in stream.namelist() if n.endswith('manifest.json')]
-            home=next(p for p in pages if p.get('Name')=='agentic')
-            self.assertIn('CUSTOM-ENGINE',[a['Name'] for a in home['Controllers'][0]['Actions'].values()])
+            home=next(p for p in pages if p.get('Name')=='home')
+            keys=home['Controllers'][0]['Actions']
+            # A single exact profile is one press away, in the first harness slot of the cockpit.
+            self.assertTrue(keys['1,0']['Name'].startswith('custom-engine / local'))
+            self.assertIn('CUSTOM-ENGINE',keys['1,0']['States'][0]['Title'])
 
     def test_device_selection_requires_choice_when_ambiguous(self):
         with tempfile.TemporaryDirectory() as folder:
