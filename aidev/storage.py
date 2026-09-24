@@ -10,6 +10,24 @@ def data_dir():
     return Path(override) if override else Path(os.environ.get('LOCALAPPDATA', Path.home() / '.local/share')) / 'AIDev'
 
 
+def shell_visible_path(path):
+    """Return the physical path Explorer can see after Codex package redirection."""
+    path = Path(path)
+    if os.name != 'nt' or os.environ.get('AI_DEV_DATA_DIR') or not os.environ.get('CODEX_INTERNAL_ORIGINATOR_OVERRIDE'):
+        return path
+    local = Path(os.environ.get('LOCALAPPDATA', ''))
+    try:
+        relative = path.relative_to(local)
+    except (ValueError, TypeError):
+        return path
+    packages = local / 'Packages'
+    for package in sorted(packages.glob('OpenAI.Codex_*')):
+        candidate = package / 'LocalCache/Local' / relative
+        if candidate.exists():
+            return candidate
+    return path
+
+
 def read_json(path, default=None):
     try:
         return json.loads(Path(path).read_text('utf-8-sig'))

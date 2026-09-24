@@ -6,10 +6,24 @@ import unittest
 from unittest.mock import patch
 from aidev.activity import receipts
 from aidev.migration import migrate_legacy
-from aidev.storage import data_dir,save_json
+from aidev.storage import data_dir,save_json,shell_visible_path
 
 
 class ResilienceTests(unittest.TestCase):
+    @unittest.skipUnless(os.name=='nt','Windows package redirection')
+    def test_shell_visible_path_resolves_codex_localcache(self):
+        with tempfile.TemporaryDirectory() as folder:
+            local=Path(folder)/'Local'
+            intended=local/'AIDev/logs'
+            physical=local/'Packages/OpenAI.Codex_test/LocalCache/Local/AIDev/logs'
+            physical.mkdir(parents=True)
+            environment={'LOCALAPPDATA':str(local),'AI_DEV_DATA_DIR':'',
+                         'CODEX_INTERNAL_ORIGINATOR_OVERRIDE':'Codex Desktop'}
+            with patch.dict(os.environ,environment):
+                self.assertEqual(shell_visible_path(intended),physical)
+                os.environ['AI_DEV_DATA_DIR']=str(intended.parent)
+                self.assertEqual(shell_visible_path(intended),intended)
+
     def test_default_directory_has_no_spaces_and_migration_preserves_data(self):
         with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ,{'LOCALAPPDATA':folder,'AI_DEV_DATA_DIR':''}):
             old=Path(folder)/'AI Dev'

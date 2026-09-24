@@ -6,7 +6,7 @@ import sys
 import tempfile
 from .discovery import discover, powershell
 from .runtime import git_read, now
-from .storage import data_dir, settings
+from .storage import data_dir, settings, shell_visible_path
 
 
 def health():
@@ -41,7 +41,7 @@ def git_status(project):
 def open_logs():
     directory=data_dir()/'logs'
     directory.mkdir(parents=True,exist_ok=True)
-    os.startfile(str(directory))
+    os.startfile(str(shell_visible_path(directory)))
 
 
 class EngineeringUI:
