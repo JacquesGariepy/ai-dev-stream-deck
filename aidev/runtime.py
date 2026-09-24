@@ -9,7 +9,7 @@ import sys
 import uuid
 from .agents import arguments_for
 from .discovery import NO_WINDOW, SCRIPTS, discover, find_entry
-from .storage import data_dir, read_json, save_json
+from .storage import data_dir, save_json
 
 
 def now():
@@ -63,8 +63,33 @@ def prepare(entry, project, workflow, objective='', english_confirmed=False):
     return path
 
 
+def load_mission(path):
+    """Reject missing/invalid receipts without overwriting the original evidence."""
+    path = Path(path).expanduser().resolve()
+    try:
+        mission = json.loads(path.read_text(encoding='utf-8-sig'))
+    except FileNotFoundError as error:
+        raise ValueError(f'Mission file not found: {path}. Reopen AI Dev and launch a new session.') from error
+    except (OSError, ValueError) as error:
+        raise ValueError(f'Cannot read mission file: {path}: {error}') from error
+    if not isinstance(mission, dict):
+        raise ValueError(f'Invalid mission file (expected a JSON object): {path}')
+    for field in ('tool', 'profile', 'command', 'project'):
+        if not isinstance(mission.get(field), str) or not mission[field].strip():
+            raise ValueError(f'Invalid mission field "{field}": {path}')
+    return path, mission
+
+
+def console_error(error):
+    from .errors import record
+    log = record(error)
+    print(f'AI Dev: {error}', file=sys.stderr)
+    if log:
+        print(f'Log: {log}', file=sys.stderr)
+
+
 def spawn_terminal(path):
-    mission = read_json(path)
+    path, mission = load_mission(path)
     python = str(Path(sys.executable).with_name('python.exe')) if os.name == 'nt' else sys.executable
     launcher = str(Path(__file__).resolve().parent.parent / 'launch.py')
     runner = [python, launcher, '--run', str(path)]
@@ -78,14 +103,21 @@ def spawn_terminal(path):
             subprocess.Popen(runner, cwd=mission['project'], creationflags=getattr(subprocess, 'CREATE_NEW_CONSOLE', 0))
     except OSError as error:
         mission.update(status='launch_error',ended=now(),error=str(error))
-        save_json(path,mission)
+        try:
+            save_json(path,mission)
+        except OSError as save_error:
+            console_error(save_error)
         raise
 
 
 def run_mission(path):
-    path = Path(path)
-    mission = read_json(path)
+    try:
+        path, mission = load_mission(path)
+    except ValueError as error:
+        console_error(error)
+        return 1
     request = None
+    exit_code = 1
     try:
         catalog = discover()
         entry = find_entry(catalog, mission['tool'], mission['profile'], mission['command'])
@@ -101,15 +133,29 @@ def run_mission(path):
         child = subprocess.run([catalog['powershell'], '-NoLogo', '-ExecutionPolicy', 'Bypass',
                                 '-File', str(SCRIPTS / 'Launch.ps1'), '-RequestPath', str(request)], cwd=mission['project'])
         mission.update(status='exited', ended=now(), exit_code=child.returncode)
+        exit_code = child.returncode
     except Exception as error:
         mission.update(status='launch_error', ended=now(), error=str(error))
-        print(str(error))
+        console_error(error)
     finally:
-        save_json(path, mission)
-        if request and request.exists():
-            request.unlink()
+        try:
+            save_json(path, mission)
+        except OSError as error:
+            console_error(error)
+            exit_code = 1
+        if request:
+            try:
+                request.unlink(missing_ok=True)
+            except OSError as error:
+                console_error(error)
+                exit_code = 1
     print('\nSession ended. Exit status does not prove the objective was achieved.')
-    input('Press Enter to close...')
+    if sys.stdin is not None and sys.stdin.isatty():
+        try:
+            input('Press Enter to close...')
+        except (EOFError, KeyboardInterrupt):
+            pass
+    return exit_code
 
 
 def open_sessions():

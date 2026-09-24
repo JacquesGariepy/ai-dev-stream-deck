@@ -58,7 +58,7 @@ def main():
         print(json.dumps(discover(), ensure_ascii=False, indent=2))
     elif args.run:
         from .runtime import run_mission
-        run_mission(args.run)
+        raise SystemExit(run_mission(args.run))
     elif args.action == 'context':
         from .runtime import capture_context
         print(capture_context(settings().get('project', str(Path.home()))))

@@ -62,7 +62,7 @@ class ResilienceTests(unittest.TestCase):
         from aidev.runtime import spawn_terminal
         with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ,{'AI_DEV_DATA_DIR':folder}):
             path=data_dir()/'missions/test.json'
-            save_json(path,{'tool':'codex','profile':'work','project':folder,'status':'prepared'})
+            save_json(path,{'tool':'codex','profile':'work','command':'codex-work','project':folder,'status':'prepared'})
             with patch('aidev.runtime.subprocess.Popen',side_effect=PermissionError('access denied')):
                 with self.assertRaises(PermissionError):spawn_terminal(path)
             receipt=json.loads(path.read_text())
