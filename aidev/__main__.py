@@ -12,12 +12,34 @@ def main():
     parser.add_argument('--run', type=Path, help=argparse.SUPPRESS)
     parser.add_argument('--tool', help='Preselect a detected harness.')
     parser.add_argument('--profile-id', help='Exact locally generated Stream Deck profile selection.')
+    parser.add_argument('--app-id', help='Exact locally detected Windows application.')
+    parser.add_argument('--mcp-id', help='Inspect a locally detected MCP configuration.')
+    parser.add_argument('--windows-action', help='Open a named Windows utility.')
+    parser.add_argument('--task-run', type=Path, help=argparse.SUPPRESS)
     parser.add_argument('--deck-language', choices=['en','fr'], help='Language of the Stream Deck profile to refresh.')
     parser.add_argument('--url', help='HTTP(S) URL for an explicit browser launch.')
     parser.add_argument('--web-context', choices=['work','personal'])
-    parser.add_argument('--action', choices=['mission', 'context', 'status', 'codex', 'claude', 'agy','terminal','files','guide','browser','browser-open','spotify','windows-settings','web','web-work','web-personal','factory','factory-status','cursor','vscode','orca','monitor','resources','performance','system-info','capture','deck-refresh','health','git','logs'], default='mission')
+    parser.add_argument('--action', choices=['mission', 'context', 'status', 'codex', 'claude', 'agy','terminal','files','guide','browser','browser-open','spotify','windows-settings','applications','mcp','project-tasks','web','web-work','web-personal','factory','factory-status','cursor','vscode','orca','monitor','resources','performance','system-info','capture','deck-refresh','health','git','logs'], default='mission')
     args = parser.parse_args()
-    if args.action == 'windows-settings':
+    if args.task_run:
+        from .project_tasks import run_task
+        raise SystemExit(run_task(args.task_run))
+    elif args.windows_action:
+        from .windows_tools import open_windows_action
+        open_windows_action(args.windows_action)
+    elif args.app_id:
+        from .app_catalog import open_app
+        open_app(args.app_id)
+    elif args.mcp_id or args.action == 'mcp':
+        from .mcp_catalog import mcp_dialog
+        mcp_dialog(args.mcp_id)
+    elif args.action == 'applications':
+        from .app_catalog import app_dialog
+        app_dialog()
+    elif args.action == 'project-tasks':
+        from .project_tasks import task_dialog
+        task_dialog()
+    elif args.action == 'windows-settings':
         import os
         os.startfile('ms-settings:')
     elif args.action == 'browser-open':

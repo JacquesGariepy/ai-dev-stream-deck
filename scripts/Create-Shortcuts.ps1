@@ -1,7 +1,24 @@
-param([Parameter(Mandatory)][string]$PythonPath, [Parameter(Mandatory)][string]$LauncherPath, [Parameter(Mandatory)][string]$OutputDirectory, [string]$ProfilesPath)
+param([Parameter(Mandatory)][string]$PythonPath, [Parameter(Mandatory)][string]$LauncherPath, [Parameter(Mandatory)][string]$OutputDirectory, [string]$ProfilesPath, [string]$CatalogPath)
 $ErrorActionPreference = 'Stop'
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 $shell = New-Object -ComObject WScript.Shell
+if ($CatalogPath) {
+    foreach ($entry in @(Get-Content -LiteralPath $CatalogPath -Raw | ConvertFrom-Json)) {
+        if ($entry.kind -notin @('app','mcp') -or $entry.id -cnotmatch '^[a-f0-9]{64}$') { throw 'Invalid catalog selection.' }
+        $link = $shell.CreateShortcut((Join-Path $OutputDirectory ($entry.kind + '-' + $entry.id + '.lnk')))
+        $link.TargetPath = $PythonPath
+        $link.Arguments = '"' + $LauncherPath + '" --' + $entry.kind + '-id ' + $entry.id
+        $link.WorkingDirectory = Split-Path -Parent $LauncherPath
+        $link.Save()
+    }
+}
+foreach ($utility in @('display','sound','network','bluetooth','storage','apps','downloads','documents','pictures','recycle-bin','calculator','notepad','event-viewer','services')) {
+    $link = $shell.CreateShortcut((Join-Path $OutputDirectory ('windows-' + $utility + '.lnk')))
+    $link.TargetPath = $PythonPath
+    $link.Arguments = '"' + $LauncherPath + '" --windows-action ' + $utility
+    $link.WorkingDirectory = Split-Path -Parent $LauncherPath
+    $link.Save()
+}
 if ($ProfilesPath) {
     foreach ($selection in @(Get-Content -LiteralPath $ProfilesPath -Raw | ConvertFrom-Json)) {
         if ($selection.id -cnotmatch '^[a-f0-9]{64}$') { throw 'Invalid profile shortcut identifier.' }
@@ -19,7 +36,7 @@ foreach ($language in @('en','fr')) {
     $link.WorkingDirectory = Split-Path -Parent $LauncherPath
     $link.Save()
 }
-foreach ($action in @('mission','codex','claude','agy','context','status','files','terminal','guide','browser','browser-open','spotify','windows-settings','web-work','web-personal','factory','factory-status','cursor','vscode','orca','monitor','resources','performance','system-info','capture','health','git','logs')) {
+foreach ($action in @('mission','codex','claude','agy','context','status','files','terminal','guide','browser','browser-open','spotify','windows-settings','applications','mcp','project-tasks','web-work','web-personal','factory','factory-status','cursor','vscode','orca','monitor','resources','performance','system-info','capture','health','git','logs')) {
     $link = $shell.CreateShortcut((Join-Path $OutputDirectory ($action + '.lnk')))
     $link.TargetPath = $PythonPath
     $link.Arguments = '"' + $LauncherPath + '" --action ' + $action

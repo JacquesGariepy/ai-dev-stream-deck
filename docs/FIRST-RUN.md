@@ -12,7 +12,7 @@ The public repository is application source, not a copy of a workstation.
 | Browser | No saved choice; select an installed browser when opening a web button |
 | Stream Deck | Optional; generate local shortcuts and import a profile for your own supported device |
 | Desktop applications | Only detected installations receive generated application keys |
-| MCP | Off until explicitly configured |
+| MCP inventory | Reads declarations from supported local configuration files; never starts a server or exposes stored secrets |
 | Usage / cost | Unknown unless measured; no invented telemetry |
 
 Known harness adapters and common web destinations are optional capabilities. They do not install providers or select accounts. Custom PowerShell commands can be registered in private `profiles.local.json`; `Invoke-AiProfile` is an optional discovery convention, not a prerequisite. Custom orchestrators need their own command or URL; naming a tool does not imply a dedicated status adapter.

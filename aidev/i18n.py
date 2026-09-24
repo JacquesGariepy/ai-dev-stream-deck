@@ -3,6 +3,23 @@ import locale
 import os
 
 STRINGS = {
+    'applications': ('Installed applications', 'Applications installées'),
+    'catalog_filter': ('Filter by name or category', 'Filtrer par nom ou catégorie'),
+    'catalog_name': ('Name', 'Nom'), 'catalog_origin': ('Source / category', 'Source / catégorie'),
+    'catalog_open': ('Open selected', 'Ouvrir la sélection'),
+    'catalog_count': ('{count} entries detected.', '{count} éléments détectés.'),
+    'catalog_removed': ('This selection is no longer detected. Refresh the Stream Deck profile.', 'Cette sélection n’est plus détectée. Actualise le profil Stream Deck.'),
+    'mcp_inventory': ('Local MCP configurations', 'Configurations MCP locales'),
+    'mcp_enabled': ('Enabled in configuration', 'Activé dans la configuration'),
+    'mcp_disabled': ('Disabled in configuration', 'Désactivé dans la configuration'),
+    'mcp_unspecified': ('Activation not specified by configuration', 'Activation non précisée par la configuration'),
+    'mcp_limits': ('Configuration inventory only. Connectivity and tools are not checked. No server is started; secrets are not displayed.', 'Inventaire de configuration uniquement. Connexion et outils non vérifiés. Aucun serveur démarré ; aucun secret affiché.'),
+    'mcp_source_folder': ('Open configuration folder', 'Ouvrir le dossier de configuration'),
+    'mcp_add_source': ('Add a configuration file', 'Ajouter un fichier de configuration'),
+    'mcp_read_issues': ('{count} configuration files could not be read.', '{count} fichiers de configuration n’ont pas pu être lus.'),
+    'project_tasks': ('Project tasks', 'Tâches du projet'),
+    'task_limits': ('Review the selected command before running it. Scripts come from your project and can modify files or access the network.', 'Vérifie la commande avant de la lancer. Les scripts viennent du projet et peuvent modifier des fichiers ou accéder au réseau.'),
+    'task_run': ('Run selected task', 'Lancer la tâche sélectionnée'),
     'detecting_profiles': ('Detecting installed tools and PowerShell profiles… This can take up to 40 seconds.', 'Détection des outils et profils PowerShell… Cela peut prendre jusqu’à 40 secondes.'),
     'orchestrator_none': ('None', 'Aucun'),
     'orchestrator_factory': ('Factory (external)', 'Factory (externe)'),

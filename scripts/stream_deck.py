@@ -38,7 +38,7 @@ def hotkey(title, key, ctrl=False, shift=False, alt=False, win=False, qt=None):
     return action(title,'system.hotkey',{'Coalesce':True,'Hotkeys':[actual,blank,blank,blank]})
 
 
-def generate(output, device, language, links, entries=None, installed_apps=None):
+def generate(output, device, language, links, entries=None, installed_apps=None, desktop_entries=None, mcp_entries=None):
     if installed_apps is None:
         from aidev.desktop import installed_tools
         installed_apps = installed_tools()
@@ -167,6 +167,50 @@ def generate(output, device, language, links, entries=None, installed_apps=None)
                      opened(label('SETTINGS','REGLAGES'),'windows-settings','Open Windows Settings without changing a setting.')]
     if 'capture' not in installed_apps:
         pages['home']=[button for button in pages['home'] if button['Name']!='PHOTO VIDEO']
+    desktop_entries=desktop_entries or []
+    def application_button(entry):
+        button=opened('\n'.join(textwrap.wrap(entry['name'].upper(),10)[:2]),'app-'+entry['id'],'Open this exact detected Windows desktop application.')
+        button['Name']=entry['name'];return button
+    paginated('daily-apps',[application_button(e) for e in desktop_entries if e['category']=='daily'],opened(label('ALL APPS','TOUTES APPS'),'applications','Search all locally installed Start-menu applications.'))
+    paginated('dev-apps',[application_button(e) for e in desktop_entries if e['category']=='dev'],opened(label('ALL APPS','TOUTES APPS'),'applications','Search installed development tools.'))
+    paginated('ai-apps',[application_button(e) for e in desktop_entries if e['category']=='agentic'],opened(label('ALL APPS','TOUTES APPS'),'applications','Search installed AI desktop applications.'))
+    mcp_buttons=[]
+    for entry in mcp_entries or []:
+        button=opened('\n'.join(textwrap.wrap(entry['name'].upper(),10)[:2]),'mcp-'+entry['id'],
+                      'Inspect this local MCP declaration. Server connection, tools and credentials are not tested or exposed.')
+        button['Name']=entry['host']+' / '+entry['name'];mcp_buttons.append(button)
+    paginated('mcp',mcp_buttons,opened('MCP','mcp','Refresh known local MCP configurations and add a configuration source. No server is started.'))
+    pages['agentic'] += [folder('MCP','mcp'),folder(label('AI APPS','APPS IA'),'ai-apps')]
+    pages['dev'] += [folder(label('DEV APPS','APPS DEV'),'dev-apps'),
+                     opened('BUILD\nTEST','project-tasks','Inspect real project scripts and run only the selected task in a terminal.'),
+                     folder('DEBUG','debug'),folder(label('GIT WEB','GIT WEB'),'git-web')]
+    pages['debug']=[back,hotkey('START F5',116,qt=16777268),hotkey('STOP',116,shift=True,qt=16777268),
+                    hotkey('BREAKPOINT',120,qt=16777272),hotkey('STEP OVER',121,qt=16777273),
+                    hotkey('STEP INTO',122,qt=16777274),hotkey('STEP OUT',122,shift=True,qt=16777274),
+                    hotkey('BUILD',66,ctrl=True,shift=True)]
+    pages['git-web']=[back,website('GITHUB','github'),website('PULL REQ','github-pr'),website('ISSUES','github-issues')]
+    pages['media']=[back,*[b for b in pages['home'] if 'Hotkeys' in b['Settings'] and b['Settings']['Hotkeys'][0]['NativeCode'] in (173,174,175,176,177,179)]]
+    pages['windows']=[back,opened(label('DISPLAY','AFFICHAGE'),'windows-display','Open Windows display settings.'),
+                      opened(label('SOUND','SON'),'windows-sound','Open Windows sound settings.'),
+                      opened(label('NETWORK','RESEAU'),'windows-network','Open Windows network status.'),
+                      opened('BLUETOOTH','windows-bluetooth','Open Bluetooth settings.'),
+                      opened(label('STORAGE','STOCKAGE'),'windows-storage','Open storage settings.'),
+                      opened(label('DOWNLOADS','TELECHARG.'),'windows-downloads','Open Downloads.'),
+                      opened('DOCUMENTS','windows-documents','Open Documents.'),
+                      opened(label('PICTURES','IMAGES'),'windows-pictures','Open Pictures.'),
+                      opened(label('RECYCLE','CORBEILLE'),'windows-recycle-bin','Open Recycle Bin without emptying it.'),
+                      hotkey(label('SEARCH','RECHERCHE'),83,win=True),hotkey('EMOJI',190,win=True,qt=46),
+                      hotkey(label('TASK VIEW','VUE TACHES'),9,win=True,qt=16777217),
+                      hotkey(label('LOCK','VERROU'),76,win=True),opened(label('SERVICES','SERVICES'),'windows-services','Inspect Windows services.')]
+    # Daily home is generic; media applications are in the detected app catalog.
+    pages['home']=[folder('DEV','dev'),folder('AGENTIC','agentic'),folder(label('APPS','APPS'),'daily-apps'),folder('WINDOWS','windows'),
+                    opened(label('BROWSER','NAVIGATEUR'),'browser-open','Choose a browser.'),opened(label('FILES','FICHIERS'),'files','Open project files or the home directory.'),
+                    opened('PHOTO\nVIDEO','capture','Open Snipping Tool; recording starts only by user action.'),folder(label('MEDIA','MEDIA'),'media'),
+                    hotkey(label('CLIPBOARD','PRESSE-PAP.'),86,win=True),opened(label('CALCULATOR','CALC'),'windows-calculator','Open Windows Calculator.'),
+                    opened(label('NOTEPAD','BLOC-NOTES'),'windows-notepad','Open Notepad.'),folder('CPU / RAM','system-home'),
+                    hotkey(label('DESKTOP','BUREAU'),68,win=True),opened(label('SETTINGS','REGLAGES'),'windows-settings','Open Windows Settings.'),
+                    opened(label('REFRESH','ACTUALISER'),'deck-refresh-'+language,'Rescan this workstation and open the regenerated profile for import.')]
+    if 'capture' not in installed_apps:pages['home']=[b for b in pages['home'] if b['Name']!='PHOTO VIDEO']
     prefix=ids['profile'].upper()+'.sdProfile'
     output.parent.mkdir(parents=True,exist_ok=True)
     with zipfile.ZipFile(output,'w',zipfile.ZIP_DEFLATED) as archive:
@@ -217,15 +261,23 @@ def main():
     pythonw=Path(sys.executable).with_name('pythonw.exe')
     entries = discover()['entries']
     selections = save_selections(entries)
+    from aidev.app_catalog import discover_apps
+    from aidev.mcp_catalog import discover_mcp
+    from aidev.storage import save_json
+    save_json(data_dir()/'harness-locations.json',[{key:e.get(key) for key in ('tool','profile','directory')} for e in entries])
+    desktop_entries=discover_apps();mcp_entries=discover_mcp()
+    catalog_path=data_dir()/'stream-deck/catalog-shortcuts.json'
+    save_json(catalog_path,[{'kind':kind,'id':e['id']} for kind,rows in [('app',desktop_entries),('mcp',mcp_entries)] for e in rows])
     subprocess.run([powershell(),'-NoProfile','-File',str(Path(__file__).with_name('Create-Shortcuts.ps1')),
-                    '-PythonPath',str(pythonw),'-LauncherPath',str(root/'launch.py'),'-OutputDirectory',str(links),'-ProfilesPath',str(selections)],check=True)
+                    '-PythonPath',str(pythonw),'-LauncherPath',str(root/'launch.py'),'-OutputDirectory',str(links),'-ProfilesPath',str(selections),'-CatalogPath',str(catalog_path)],check=True)
     profile_root=Path(os.environ['APPDATA'])/'Elgato/StreamDeck/ProfilesV3'
     device=select_device(profile_root,args.device_id or settings().get('stream_deck_device'))
     if args.device_id:
         from aidev.storage import save_settings
         config=settings();config['stream_deck_device']=device['UUID'];save_settings(config)
     language = resolve_language(args.language or settings().get('language','auto'))
-    output=generate(data_dir()/('stream-deck/AI-Dev-'+language.upper()+'.streamDeckProfile'),device,language,links,entries)
+    output=generate(data_dir()/('stream-deck/AI-Dev-'+language.upper()+'.streamDeckProfile'),device,language,links,entries,desktop_entries=desktop_entries,mcp_entries=mcp_entries)
+    print(f'Detected {len(desktop_entries)} desktop applications and {len(mcp_entries)} MCP declarations. Connections are not checked.')
     print(f'Detected {len(entries)} profile entries across {len({r["tool"] for r in entries})} harnesses.')
     print('Import this local file in Stream Deck (do not commit it): '+str(output))
     if args.import_profile:

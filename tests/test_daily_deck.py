@@ -22,10 +22,11 @@ class DailyDeckTests(unittest.TestCase):
                 self.assertEqual(len(actions),15)
                 self.assertEqual([a['Name'] for a in actions[:2]],['DEV','AGENTIC'])
                 self.assertNotEqual(actions[0]['Settings']['ProfileUUID'],actions[1]['Settings']['ProfileUUID'])
-                media={a['Settings']['Hotkeys'][0]['NativeCode']:a['Settings']['Hotkeys'][0]['QTKeyCode'] for a in actions if 'Hotkeys' in a['Settings']}
+                media_page=next(p for p in pages.values() if p['Name']=='media')
+                media={a['Settings']['Hotkeys'][0]['NativeCode']:a['Settings']['Hotkeys'][0]['QTKeyCode'] for a in media_page['Controllers'][0]['Actions'].values() if 'Hotkeys' in a['Settings']}
                 self.assertEqual(media[179],0x01000086)
                 self.assertEqual(media[173],0x01000071)
-                self.assertTrue(any('spotify.lnk' in a['Settings'].get('path','') for a in actions))
+                self.assertFalse(any('spotify.lnk' in a['Settings'].get('path','') for a in actions))
                 for filename,page in pages.items():
                     for controller in page['Controllers']:
                         for button in (controller['Actions'] or {}).values():

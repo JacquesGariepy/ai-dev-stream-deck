@@ -83,6 +83,15 @@ class Panel(Operations, EngineeringUI):
         deck = ttk.Frame(frame); deck.pack(fill='x', pady=(0,8))
         ttk.Button(deck, text=self.text('deck_language'), command=self.deck_language).pack(side='left')
         ttk.Label(deck, text=self.text('deck_note')).pack(side='left', padx=10)
+        catalogs=ttk.Frame(frame);catalogs.pack(fill='x',pady=(0,8))
+        for title,action in ((self.text('applications'),'applications'),('MCP','mcp'),('Build / Test','project-tasks')):
+            ttk.Button(catalogs,text=title,command=lambda value=action:self.open_catalog('--action',value)).pack(side='left',padx=(0,8))
+        from .storage import data_dir,read_json
+        try:desktop_entries=read_json(data_dir()/'desktop-apps.json',[])
+        except (OSError,ValueError):desktop_entries=[]
+        for entry in desktop_entries:
+            if entry.get('name','').casefold() in ('claude','chatgpt'):
+                ttk.Button(catalogs,text=entry['name']+' Desktop',command=lambda value=entry['id']:self.open_catalog('--app-id',value)).pack(side='left',padx=(0,8))
         self.notebook = ttk.Notebook(frame); self.notebook.pack(fill='both', expand=True)
         self.mission_frame = ttk.Frame(self.notebook, padding=12)
         self.activity_frame = ttk.Frame(self.notebook, padding=12)
@@ -208,6 +217,10 @@ class Panel(Operations, EngineeringUI):
         import subprocess
         import sys
         subprocess.Popen([sys.executable, str(Path(__file__).resolve().parent.parent/'launch.py'), '--action','browser'])
+
+    def open_catalog(self, option, value):
+        import subprocess,sys
+        subprocess.Popen([sys.executable,str(Path(__file__).resolve().parent.parent/'launch.py'),option,value])
 
     def browse(self):
         selected = filedialog.askdirectory(initialdir=self.project.get() or str(Path.home()), parent=self.root)
