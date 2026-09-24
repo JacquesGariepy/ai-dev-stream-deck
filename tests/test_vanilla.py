@@ -37,7 +37,7 @@ class VanillaTests(unittest.TestCase):
             archive=deck.generate(Path(folder)/'deck.zip',{'Model':'test'},'en',Path(folder)/'links',entries,installed_apps={})
             with zipfile.ZipFile(archive) as stream:
                 pages=[json.loads(stream.read(n)) for n in stream.namelist() if n.endswith('manifest.json')]
-            home=next(p for p in pages if p.get('Name')=='home')
+            home=next(p for p in pages if p.get('Name')=='agentic')
             self.assertIn('CUSTOM-ENGINE',[a['Name'] for a in home['Controllers'][0]['Actions'].values()])
 
     def test_device_selection_requires_choice_when_ambiguous(self):

@@ -16,6 +16,7 @@ from aidev.discovery import powershell, discover
 from aidev.deck_profiles import save_selections, selection_id
 from aidev.i18n import resolve_language
 from aidev.storage import data_dir, settings
+from aidev.deck_icons import icon_png, button_icon
 
 
 def background():
@@ -28,7 +29,7 @@ def background():
 def action(title, kind, config, description=''):
     return {'ActionID':str(uuid.uuid4()), 'Name':title.replace('\n',' '), 'UUID':'com.elgato.streamdeck.'+kind,
             'LinkedTitle':True, 'Settings':config, 'State':0, 'UserInput':description,
-            'States':[{'Title':title, 'ShowTitle':True, 'TitleAlignment':'middle', 'TitleColor':'#ffffff', 'FontSize':10, 'Image':'Images/background.png'}]}
+            'States':[{'Title':title, 'ShowTitle':True, 'TitleAlignment':'bottom', 'TitleColor':'#ffffff', 'FontSize':9, 'Image':'Images/background.png'}]}
 
 
 def hotkey(title, key, ctrl=False, shift=False, alt=False, win=False, qt=None):
@@ -140,15 +141,49 @@ def generate(output, device, language, links, entries=None, installed_apps=None)
         pages[page] = [button for button in pages[page]
                        if (Path(button['Settings'].get('path','').strip('"')).stem not in desktop_actions
                            or Path(button['Settings'].get('path','').strip('"')).stem in installed_apps)]
+    # Each native folder has one parent. Daily system tools get their own page.
+    agent_buttons = [button for button in pages.pop('home')
+                     if button['Name'] not in (label('EDITOR','EDITEUR'), 'TERMINAL', label('APPS','OUTILS'), label('PROJECT','PROJET'))]
+    pages['agentic'] = [back, *agent_buttons]
+    pages['dev'] = [back, opened('TERMINAL','terminal','Choose an installed terminal for the selected project.'),
+                    folder(label('EDITOR','EDITEUR'),'editor'), folder(label('APPS','OUTILS'),'apps'),
+                    opened('GIT','git','Inspect local Git state for the selected project.'),
+                    opened(label('PROJECT','PROJET'),'mission','Choose the project in the control panel.'),
+                    opened(label('FILES','FICHIERS'),'files','Open the selected project folder.'),
+                    opened(label('HEALTH','DIAG'),'health','Inspect locally installed tools and storage.'),
+                    opened(label('LOGS','JOURNAUX'),'logs','Open private logs.')]
+    pages['system-home'] = list(pages['system'])
+    pages['home'] = [folder('DEV','dev'), folder('AGENTIC','agentic'),
+                     opened(label('BROWSER','NAVIGATEUR'),'browser-open','Choose an installed browser and open it.'),
+                     opened(label('FILES','FICHIERS'),'files','Open the current project or the user home folder.'),
+                     opened('SPOTIFY','spotify','Open installed Spotify; otherwise offer its web player in your chosen browser. No playback starts automatically.'),
+                     hotkey(label('PREVIOUS','PRECEDENT'),177,qt=0x01000082),
+                     hotkey(label('PLAY / PAUSE','LECTURE'),179,qt=0x01000086),
+                     hotkey(label('NEXT','SUIVANT'),176,qt=0x01000083),
+                     hotkey(label('MUTE','MUET'),173,qt=0x01000071),
+                     opened('PHOTO\nVIDEO','capture','Open Snipping Tool to choose photo or video. Recording requires an explicit user action.'),
+                     hotkey('VOL -',174,qt=0x01000070),hotkey('VOL +',175,qt=0x01000072),
+                     hotkey(label('DESKTOP','BUREAU'),68,win=True),folder('CPU / RAM','system-home'),
+                     opened(label('SETTINGS','REGLAGES'),'windows-settings','Open Windows Settings without changing a setting.')]
+    if 'capture' not in installed_apps:
+        pages['home']=[button for button in pages['home'] if button['Name']!='PHOTO VIDEO']
     prefix=ids['profile'].upper()+'.sdProfile'
     output.parent.mkdir(parents=True,exist_ok=True)
     with zipfile.ZipFile(output,'w',zipfile.ZIP_DEFLATED) as archive:
         def write(path,data):archive.writestr(prefix+'/'+path,json.dumps(data,ensure_ascii=False))
         write('manifest.json',{'Name':'AI Dev '+language.upper(),'Version':'3.0','Device':device,'Pages':{'Current':ids['home'],'Default':ids['pinned'],'Pages':[ids['home']]}})
         for page,actions in pages.items():
-            path='Profiles/'+ids[page].upper()
+            path='Profiles/'+ids.setdefault(page,str(uuid.uuid4())).upper()
+            icons={}
+            for button in actions:
+                kind=button_icon(button)
+                theme='music' if kind=='music' else 'daily' if page in ('home','system-home') else 'dev' if page in ('dev','apps','editor','system') else 'agent'
+                filename=kind+'-'+theme+'.png'
+                # Copies avoid shared state changing icons on another page.
+                button['States']=[dict(state,Image='Images/'+filename) for state in button['States']]
+                icons[filename]=icon_png(kind,theme)
             write(path+'/manifest.json',{'Name':page,'Icon':'','Controllers':[{'Type':'Keypad','Actions':{f'{i%5},{i//5}':dict(a,ActionID=str(uuid.uuid4())) for i,a in enumerate(actions)}}]})
-            archive.writestr(prefix+'/'+path+'/Images/background.png',background())
+            for filename,content in icons.items():archive.writestr(prefix+'/'+path+'/Images/'+filename,content)
         write('Profiles/'+ids['pinned'].upper()+'/manifest.json',{'Name':'','Icon':'','Controllers':[{'Type':'Keypad','Actions':None}]})
     return output
 

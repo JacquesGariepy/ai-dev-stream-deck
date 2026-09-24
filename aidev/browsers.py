@@ -73,7 +73,7 @@ def select_context(context):
     return True
 
 
-def browser_dialog(url=None, context=None):
+def browser_dialog(url=None, context=None, launch_blank=False):
     import tkinter as tk
     from tkinter import ttk, messagebox
     from .i18n import resolve_language, tr
@@ -109,7 +109,8 @@ def browser_dialog(url=None, context=None):
             mapping={key:next((name for name,label in labels.items() if label==var.get()),None) for key,var in variables.items()}
             save_browser_choices(selected.get(),mapping,ask.get())
             if url:open_website(url,selected.get())
+            elif launch_blank:subprocess.Popen([installed_browsers()[mapping[selected.get()]]])
             app.destroy()
         except Exception as error:messagebox.showerror(text('error'),str(error),parent=app)
-    ttk.Button(panel,text=text('save_open' if url else 'save'),command=submit).pack(anchor='e',pady=8)
+    ttk.Button(panel,text=text('save_open' if url or launch_blank else 'save'),command=submit).pack(anchor='e',pady=8)
     app.mainloop()

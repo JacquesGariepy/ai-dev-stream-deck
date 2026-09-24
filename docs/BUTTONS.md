@@ -1,17 +1,21 @@
 # Complete Stream Deck button map
 
-The 15-key layout has up to 74 base positions: up to 15 home, 15 prompts, 15 editor, 11 web, up to 13 apps and 5 system, plus generated harness/profile pages. Each subpage has a Back button. All hardware names follow the generated FR/EN language; account names retain their actual names. Agent prompt contents and MCP action descriptions remain English.
+The 15-key layout starts with a general-purpose Daily page and two work folders. Counts depend on installed tools; every subpage has Back. All icons are original, bundled PNGs with FR/EN labels. No personal account or device identity is distributed.
 
 | Page | Controls |
 |---|---|
-| Home | Mission, up to three detected available harnesses, Profiles, ORCH (optional external orchestrator), Git context, Sessions, Editor folder, AI Web folder, Prompts folder, Terminal chooser, Apps folder, Project, Orchestrator control |
+| Daily / Home | DEV, AGENTIC, Browser, Files, Spotify, Previous, Play/Pause, Next, Mute, Photo/Video, Volume down/up, Desktop, CPU/RAM, Windows Settings |
+| DEV | Back, Terminal chooser, Editor, Apps, Git, Project, Files, Diagnostics, Logs |
+| AGENTIC | Back, Mission, up to three detected harnesses, Profiles, optional Orchestrator, Context, Sessions, AI Web, Prompts, Control |
 | Prompts | Back; Implement, Plan, Debug, Review, Tests, Handoff, Refactor, Explain, Performance, Security, Docs, Context, Usage/costs, PR draft |
 | Editor | Back; Commands, Find file, Search, Save, Format, Copy, Paste, Panel, Problems, Rename, Definition, Undo, Redo, Escape |
 | AI Web | Back; Browser settings, Work, Personal, ChatGPT, Claude, Gemini, Perplexity, GitHub, Pull requests, Issues |
-| Apps | Back; Cursor desktop, VS Code, Orca, CPU/RAM folder, Capture, Files, Guide, Settings/language, Health/Diag, Git, Logs/Journaux, Photo/Video |
+| Apps | Back; detected desktop apps, CPU/RAM, Capture, Files, Guide, AI Dev settings, Diagnostics, Git, Logs, Photo/Video |
 | CPU/RAM | Back; Task Manager, Resource Monitor, Performance Monitor, System Information |
 | Profiles | Back; Mission, Refresh, each detected harness, More when needed |
 | Each harness | Back; Panel, Refresh, each exact detected profile/default CLI, More when needed |
+
+Spotify opens locally when detected, otherwise it offers its web player using the browser chooser. Playback and volume use [Windows media keys](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes), with [Qt key identifiers](https://doc.qt.io/qt-6.8/qt.html). They control the active media player; they do not guarantee exclusive Spotify control, display album art, authenticate an account or start playback when generating/importing a profile.
 
 ## Editor shortcuts
 
@@ -34,7 +38,7 @@ These target the currently focused app and use common VS Code/Cursor defaults; c
 
 ## Language, profiles and agent control
 
-- **Detected harnesses** open their profile folders. Home features up to three available tools in alphabetical order. **Profiles** lists all detected harnesses, including unavailable wrappers marked `!`. A profile key opens the panel with its exact command selected, overriding the remembered account. No agent starts until you choose Open session or Launch mission.
+- **Detected harnesses** open their profile folders. AGENTIC features up to three available tools in alphabetical order. **Profiles** lists all detected harnesses, including unavailable wrappers marked `!`. A profile key opens the panel with its exact command selected, overriding the remembered account. No agent starts until you choose Open session or Launch mission.
 - **Refresh / Actualiser** redetects profiles and opens the standard profile import. Install the generated profile to update hardware labels. Detection is not a live hardware watcher; stale profile keys refuse to silently select another account.
 - **Sessions** opens live receipt observations and the next suggested verification/diagnosis mission.
 - **Health / Diag** checks installed tools and storage access. **Git** inspects the currently selected project. **Logs / Journaux** opens private error logs. Results are refreshed in AI Dev; physical labels are not live status badges.

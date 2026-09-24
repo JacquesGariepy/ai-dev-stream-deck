@@ -15,9 +15,21 @@ def main():
     parser.add_argument('--deck-language', choices=['en','fr'], help='Language of the Stream Deck profile to refresh.')
     parser.add_argument('--url', help='HTTP(S) URL for an explicit browser launch.')
     parser.add_argument('--web-context', choices=['work','personal'])
-    parser.add_argument('--action', choices=['mission', 'context', 'status', 'codex', 'claude', 'agy','terminal','files','guide','browser','web','web-work','web-personal','factory','factory-status','cursor','vscode','orca','monitor','resources','performance','system-info','capture','deck-refresh','health','git','logs'], default='mission')
+    parser.add_argument('--action', choices=['mission', 'context', 'status', 'codex', 'claude', 'agy','terminal','files','guide','browser','browser-open','spotify','windows-settings','web','web-work','web-personal','factory','factory-status','cursor','vscode','orca','monitor','resources','performance','system-info','capture','deck-refresh','health','git','logs'], default='mission')
     args = parser.parse_args()
-    if args.profile_id or args.action == 'deck-refresh':
+    if args.action == 'windows-settings':
+        import os
+        os.startfile('ms-settings:')
+    elif args.action == 'browser-open':
+        from .browsers import browser_dialog
+        browser_dialog(launch_blank=True)
+    elif args.action == 'spotify':
+        from .desktop import installed_tools, open_tool
+        if 'spotify' in installed_tools():open_tool('spotify')
+        else:
+            from .browsers import browser_dialog
+            browser_dialog('https://open.spotify.com/')
+    elif args.profile_id or args.action == 'deck-refresh':
         try:
             if args.profile_id:
                 from .deck_profiles import load_selection
