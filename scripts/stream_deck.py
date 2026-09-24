@@ -99,6 +99,7 @@ def generate(output, device, language, links, entries=None):
     for row in sorted(unique.values(),key=lambda r:(r['tool'],r['profile'],r['command'])):
         groups.setdefault(row['tool'],[]).append(row)
     tool_folders = {}
+    home_folders = {}
     for index, (tool, rows) in enumerate(groups.items()):
         page = 'harness-'+str(index)
         buttons = []
@@ -115,11 +116,16 @@ def generate(output, device, language, links, entries=None):
             buttons.append(button)
         paginated(page,buttons,opened(label('PANEL','PANNEAU'),tool if tool in ('codex','claude','agy') else 'mission','Open the mission panel to choose a harness and profile.'))
         tool_folders[tool]=folder(('! ' if not any(row['available'] for row in rows) else '')+tool.upper(),page)
+        if tool in ('codex','claude','agy'):
+            # Native folders are a tree: importing a child with two parents drops a link.
+            home_page = page+'-home'
+            paginated(home_page,buttons,opened(label('PANEL','PANNEAU'),tool,'Open the mission panel to choose a harness and profile.'))
+            home_folders[tool]=folder(tool.upper(),home_page)
     paginated('profiles',list(tool_folders.values()),opened('MISSION','mission','Open the mission panel to choose a harness and profile.'))
     pages['home'][4]=folder(label('PROFILES','PROFILS'),'profiles')
     for position, tool in ((1,'codex'),(2,'claude'),(3,'agy')):
-        if tool in tool_folders:
-            pages['home'][position]=tool_folders[tool]
+        if tool in home_folders:
+            pages['home'][position]=home_folders[tool]
     prefix=ids['profile'].upper()+'.sdProfile'
     output.parent.mkdir(parents=True,exist_ok=True)
     with zipfile.ZipFile(output,'w',zipfile.ZIP_DEFLATED) as archive:
@@ -127,7 +133,7 @@ def generate(output, device, language, links, entries=None):
         write('manifest.json',{'Name':'AI Dev '+language.upper(),'Version':'3.0','Device':device,'Pages':{'Current':ids['home'],'Default':ids['pinned'],'Pages':[ids['home']]}})
         for page,actions in pages.items():
             path='Profiles/'+ids[page].upper()
-            write(path+'/manifest.json',{'Name':page,'Icon':'','Controllers':[{'Type':'Keypad','Actions':{f'{i%5},{i//5}':a for i,a in enumerate(actions)}}]})
+            write(path+'/manifest.json',{'Name':page,'Icon':'','Controllers':[{'Type':'Keypad','Actions':{f'{i%5},{i//5}':dict(a,ActionID=str(uuid.uuid4())) for i,a in enumerate(actions)}}]})
             archive.writestr(prefix+'/'+path+'/Images/background.png',background())
         write('Profiles/'+ids['pinned'].upper()+'/manifest.json',{'Name':'','Icon':'','Controllers':[{'Type':'Keypad','Actions':None}]})
     return output

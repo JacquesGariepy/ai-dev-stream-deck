@@ -50,10 +50,14 @@ class DeckProfileTests(unittest.TestCase):
                         walk(target)
             walk(home)
             actions=[button for key in visited for button in (pages[key]['Controllers'][0]['Actions'] or {}).values()]
+            action_ids=[a['ActionID'] for a in actions]
+            self.assertEqual(len(action_ids),len(set(action_ids)))
+            targets=[a['Settings']['ProfileUUID'] for a in actions if a['UUID'].endswith('profile.openchild')]
+            self.assertEqual(len(targets),len(set(targets)), 'Native folders must have exactly one parent')
             for row in rows:
                 expected='profile-'+selection_id(row)+'.lnk'
                 matches=[a for a in actions if expected in a['Settings'].get('path','')]
-                self.assertEqual(len(matches),1,expected)
+                self.assertEqual(len(matches),2 if row['tool'] in ('codex','claude','agy') else 1,expected)
                 if not row['available']:
                     self.assertTrue(matches[0]['States'][0]['Title'].startswith('!'))
             self.assertTrue(any('deck-refresh-fr.lnk' in a['Settings'].get('path','') for a in actions))
