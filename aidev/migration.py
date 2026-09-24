@@ -36,8 +36,13 @@ def migrate_legacy():
             if path.suffix == '.json' and (relative.name in ('settings.json','elgato-mcp.json') or relative.parts[0]=='missions'):
                 value = read_json(path)
                 def rewrite(item):
-                    if isinstance(item, str) and (item == str(source) or item.startswith(str(source)+os.sep)):
-                        return str(target)+item[len(str(source)):]
+                    if isinstance(item, str):
+                        try:
+                            candidate=Path(item)
+                            if candidate.is_absolute():
+                                relative_path=candidate.resolve().relative_to(source.resolve())
+                                return str(target/relative_path)
+                        except (ValueError,OSError):pass
                     if isinstance(item, list):return [rewrite(v) for v in item]
                     if isinstance(item, dict):return {k:(v if k in ('objective','prompt') else rewrite(v)) for k,v in item.items()}
                     return item
