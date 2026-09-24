@@ -2,239 +2,186 @@
 
 # AI Dev Stream Deck
 
-### Your AI development cockpit, one key away.
+### Press a key. Your agent is already working.
 
-Run agents. Switch profiles. Ship code. Control Windows. Stay in flow.
+Turn an Elgato Stream Deck into an AI-first development cockpit for Windows. Capture the current project, selection, clipboard and Git state, then start Claude Code, Codex or AGY directly in a terminal with the task already in progress.
 
 [![Windows CI](https://github.com/JacquesGariepy/ai-dev-stream-deck/actions/workflows/tests.yml/badge.svg)](https://github.com/JacquesGariepy/ai-dev-stream-deck/actions/workflows/tests.yml)
 ![Windows](https://img.shields.io/badge/Windows-11-0078D4?logo=windows11&logoColor=white)
-![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
+![PowerShell](https://img.shields.io/badge/PowerShell-5.1%20%7C%207-5391FE?logo=powershell&logoColor=white)
 ![Stream Deck](https://img.shields.io/badge/Stream%20Deck-Mini%20%7C%20Neo%20%7C%20%2B%20%7C%20MK.2%20%7C%20XL-111111)
 [![MIT](https://img.shields.io/badge/License-MIT-22c55e.svg)](LICENSE)
 
-![AI Dev Expert home page with mission, harness, developer and Windows controls](docs/images/stream-deck-home.png)
+![AI Dev Agentic home profile](docs/images/stream-deck-agentic-home.jpg)
 
-**Local-first · Bilingual UI · English agent protocol · No launcher API key**
+**No control panel between the key and the work. No launcher API key. No bundled orchestrator.**
 
-[Get started](#launch-in-60-seconds) · [Explore the cockpit](#the-cockpit) · [Button map](docs/BUTTONS.md) · [First run](docs/FIRST-RUN.md)
+[Install](#install) · [Meet the deck](#the-15-key-agent-loop) · [Customize](#make-it-yours) · [Classic cockpit](#classic-cockpit-optional)
 
 </div>
 
 ---
 
-## 🚀 One deck. Your entire development loop.
+## One press starts the whole loop
 
-AI Dev turns an Elgato Stream Deck into a dynamic command center for AI-first engineering on Windows. It discovers the tools already installed on the workstation and builds a profile around them.
+The Agentic profile is a thin local control surface. A key either performs a native action or invokes one small PowerShell dispatcher. The dispatcher resolves the project open in VS Code, Cursor, Windsurf or VSCodium, captures useful context and opens Windows Terminal with the selected harness and account profile.
 
-| Launch agents | Build and ship | Control the workstation |
-|---|---|---|
-| Codex, Claude Code, AGY and other registered CLIs | Git, tests, lint, builds, dev servers and editor actions | Apps, terminals, browsers, desktops, monitors, capture and media |
-| Work and personal PowerShell profiles | Plan, implement, review, debug, test and handoff workflows | CPU/RAM diagnostics, files, clipboard, search and settings |
-| Claude Desktop, ChatGPT Desktop and discovered AI apps | Sessions, context snapshots, prompts and optional orchestrators | Chrome, Edge, Firefox or Brave per context |
+There is no Python UI in the path:
 
-No orchestrator is forced on the user. Run harnesses directly, connect an existing Factory, or select another external orchestrator such as OpenClaw or AX. AI Dev stays the control surface.
+```text
+Stream Deck key
+    → hidden ai.ps1 dispatcher
+    → current project + selection + clipboard + Git context
+    → claude-work / codex-personal / agy-work
+    → visible terminal session you can continue
+```
 
-## ✨ What makes it different
+Your agents use their normal local configuration, MCP servers, skills and authentication. The deck does not proxy prompts, store credentials or replace the agent runtime.
 
-- **Dynamic by design.** Harnesses, named profiles, desktop apps, terminals, project tasks and MCP declarations are discovered locally.
-- **Fast without being reckless.** Frequent actions are one or two presses away; missions still require an explicit launch.
-- **Work and personal contexts.** Keep account wrappers and browser choices separate without moving cookies or credentials.
-- **Bilingual for humans.** The interface follows Windows and supports French or English. Agent-authored instructions stay in English.
-- **Local-first state.** Settings, inventories, receipts, generated profiles and shortcuts remain under `%LOCALAPPDATA%\AIDev`.
-- **Portable source, personal output.** The repository is generic. Each workstation generates its own device-specific Stream Deck profile.
+## The 15-key agent loop
 
-## 🎛️ The cockpit
+| ASK | FIX | REVIEW | COMMIT | EXPLAIN |
+|---|---|---|---|---|
+| TEST | PLAN | PR | HANDOFF | CONTINUE |
+| CLAUDE | CODEX | AGY | WORK / PERSO | PLUS |
 
-### Agentic workflows
+- **ASK** accepts an objective, including Windows voice dictation with `Win + H`.
+- **FIX** uses selected text or the clipboard, reproduces the problem, fixes it and runs focused checks.
+- **REVIEW** inspects the current diff and repairs concrete defects.
+- **COMMIT** checks the tree and creates logical commits. It never pushes.
+- **EXPLAIN** explains the current selection in read-only mode.
+- **TEST** runs the project suite, fixes failures and re-runs it.
+- **PLAN**, **PR** and **HANDOFF** inspect the repository without editing it.
+- **CONTINUE** resumes the last harness in the current project.
+- **CLAUDE**, **CODEX** and **AGY** open an interactive session immediately.
+- **WORK / PERSO** switches the account wrapper used by every agent key.
+- **PLUS** opens direct Git, editor, debug, media, desktop, Windows and web controls.
 
-![Agentic page with plan, implement, review, debug, test, sessions, context, profiles and MCP controls](docs/images/stream-deck-agentic.png)
+Autonomous keys may edit files, run commands and create commits. Agent-side guardrails prohibit push, force-push, remote merges and publishing. The direct **PUSH** key remains visible and requires confirmation in its terminal.
 
-PLAN, IMPLEMENT, REVIEW, DEBUG, TEST and HANDOFF open the control panel with the matching workflow selected. The user reviews the English objective and launches it explicitly.
+## Install
 
-> [!NOTE]
-> **AGENTIC > TEST** prepares an AI testing mission. **BUILD / TEST > TEST** runs the selected project's detected test suite directly in a terminal.
+### Requirements
 
-### Windows controls
+- Windows 10 or 11
+- Python 3.11+
+- PowerShell 7 recommended; Windows PowerShell 5.1 is supported by the dispatcher
+- Elgato Stream Deck software
+- At least one supported CLI: Claude Code, Codex or AGY
 
-![System page with apps, windows, desktops, monitoring, capture, clipboard and settings controls](docs/images/stream-deck-system.png)
-
-Daily workstation controls live beside the development tools: installed apps, virtual desktops, monitor views, performance tools, screen capture, clipboard, calculator and settings.
-
-<details>
-<summary><strong>See more generated pages</strong></summary>
-
-![Overview of home, developer, agentic, system, Git, editor, run and prompt pages](docs/images/deck-layout-overview.png)
-
-</details>
-
-### A layout built for muscle memory
-
-On the 15-key MK.2 home page:
-
-| Row | Keys |
-|---|---|
-| Agentic | MISSION · three detected harnesses · SESSIONS |
-| Development | TERMINAL · EDITOR · GIT · BUILD/TEST · PROMPTS |
-| Navigation | AGENTIC · DEV · SYSTEM · MEDIA · REFRESH |
-
-- Violet = agentic workflows
-- Teal = development
-- Orange = Git
-- Yellow = build, test and debug
-- Blue = Windows and system
-- Green = media
-- Grey = navigation
-- Red = unavailable or disruptive actions
-
-BACK remains top-left on subpages and MORE remains bottom-right. Mini, Neo, +, original, MK.2 and XL layouts preserve the same priority order as space changes.
-
-## ⚡ Launch in 60 seconds
-
-### 1. Clone and open
+### Generate and import the Agentic profile
 
 ```powershell
 git clone https://github.com/JacquesGariepy/ai-dev-stream-deck.git
 cd ai-dev-stream-deck
+python scripts/agent_deck.py
+```
+
+The generator detects the connected Stream Deck model, writes Windows-native shortcuts, audits every generated page and opens the resulting profile for import. Select **AI Dev Agentic** in the Stream Deck application.
+
+Generated runtime files live under:
+
+```text
+%LOCALAPPDATA%\AI Dev\agentdeck
+```
+
+This short, stable path also avoids Windows path-length and packaged-app redirection problems.
+
+### Account profiles
+
+For each harness, the dispatcher first looks for the active named wrapper and falls back to the base CLI:
+
+```text
+claude-work       claude-personal
+codex-work        codex-personal
+agy-work          agy-personal
+```
+
+PowerShell functions and aliases are supported because terminal sessions load the normal user profile. A wrapper can forward arguments to any account-selection mechanism you already use:
+
+```powershell
+function claude-work { Invoke-AiProfile -Tool claude -ProfileName work -ToolArgs $args }
+```
+
+Press **WORK / PERSO** to switch all three harnesses together. If a named wrapper is unavailable, the deck runs `claude`, `codex` or `agy` directly.
+
+## Context without copy-paste chores
+
+Agent intents can receive:
+
+- the project detected from the foreground editor;
+- a manually selected fallback project;
+- selected text or current clipboard content;
+- the current Git branch, short status and diff summary;
+- an English task prompt with local safety rules.
+
+Clipboard context is capped before it reaches a harness. Repository text is explicitly treated as data rather than trusted instructions. Request files are temporary and deleted when the terminal session starts.
+
+## Make it yours
+
+Edit the installed `intents.json` to change harness assignments, autonomy modes, prompts, root folders or the default project. You do not need to regenerate the Stream Deck profile after editing it.
+
+```text
+%LOCALAPPDATA%\AI Dev\agentdeck\intents.json
+```
+
+The source template is [`agentdeck/intents.json`](agentdeck/intents.json). Human-facing controls can be localized; prompts sent to agents remain English so behavior stays consistent across machines.
+
+The repository is generic and contains no Factory, OpenClaw, AX or other orchestrator. Use whichever harness or orchestration layer is installed on your workstation.
+
+## Native tools behind PLUS
+
+The secondary pages keep frequent operations out of an intermediate app:
+
+- fixed Git status, diff, log, fetch and fast-forward pull commands;
+- confirmed Git push;
+- editor navigation, search, formatting and terminal shortcuts;
+- debug controls;
+- media and volume controls;
+- virtual desktops, window management and screen capture;
+- Windows utilities and web tools.
+
+Web destinations use the browser selected by Windows. The optional Classic cockpit provides per-context Chrome, Edge, Firefox or Brave selection.
+
+## Classic cockpit (optional)
+
+The repository also includes the original dynamic AI Dev desktop application. It discovers more workstation tools, terminal types, desktop applications, project tasks and declared MCP configurations. Run it when you want a visual configuration and inventory surface:
+
+```powershell
 python launch.py
 ```
 
-The desktop panel uses only the Python standard library. A physical Stream Deck is optional.
-
-### 2. Generate the Stream Deck profile
+Generate its larger Expert profile with:
 
 ```powershell
-pwsh -File scripts/Install.ps1 -StreamDeck
+python scripts/stream_deck.py --import-profile
 ```
 
-Import the `.streamDeckProfile` printed by the installer. It contains local shortcut paths for that workstation and device, so generated archives should never be committed or shared.
+The **AI Dev Agentic** profile does not call `launch.py`; its TEST, Git and agent keys never open the Classic control panel.
 
-### 3. Choose the project and tools
+## Safety and privacy
 
-Select a project, harness and named profile. Write mission objectives in English, choose the workflow, review the launch, then press **Launch**.
+- Source and generated workstation data are separated.
+- Profile archives, device IDs, local inventories, missions and credentials are excluded from the public export.
+- Agent keys never push or publish.
+- The only direct push action asks for confirmation.
+- No force-push, hard reset, branch deletion or automatic remote merge key exists.
+- Discovery never claims that an installed command is authenticated.
 
-> [!TIP]
-> Keep the checkout in its installed location because generated shortcuts point to it. Set `AI_DEV_POWERSHELL` when the desired profile commands live in a specific PowerShell installation.
-
-## 🔎 Automatic local discovery
-
-AI Dev opens PowerShell with the user's normal startup profile and inspects available commands. Discovery does not sign in, start an agent or open credential files.
-
-| Harness | CLI discovery | Named profiles | Mission adapter |
-|---|---|---|---|
-| Codex | PATH and standard locations | PowerShell profile commands | Yes |
-| Claude Code | PATH and standard locations | PowerShell profile commands | Yes |
-| AGY | PATH and standard locations | PowerShell profile commands | Yes |
-| Cursor CLI | `agent` / `cursor-agent` | PowerShell profile commands | Interactive |
-| Gemini CLI, OpenCode, Aider, Copilot CLI | PATH | Registered commands | Interactive |
-
-Functions and aliases that call `Invoke-AiProfile -Tool 'name' -ProfileName 'name'` are detected automatically. Other trusted wrappers can be registered locally in `%LOCALAPPDATA%\AIDev\profiles.local.json`:
-
-```json
-[
-  {"tool": "gemini", "profile": "work", "command": "gemini-work"}
-]
-```
-
-AI Dev verifies the exact command before launch. Discovery shows availability; it does not claim that an account is authenticated.
-
-## 🛠️ Development superpowers
-
-### Git from the deck
-
-Status, Diff, Log, Fetch, Add `-p`, Commit, Pull `--ff-only`, confirmed Push, validated New branch, Switch, Stash and Pop run as fixed visible commands in the selected repository. There is no force-push, reset or branch deletion action.
-
-### Project-aware tasks
-
-BUILD, TEST, LINT, DEV, TYPES and FORMAT use the matching task discovered in the selected project. If no match exists, AI Dev opens the task list instead of inventing a command.
-
-### Every terminal on the workstation
-
-The terminal chooser detects CMD, Windows PowerShell, PowerShell 7, Git Bash, Windows Terminal, WSL distributions and common optional terminal apps. It opens supported shells in the selected project and remembers the last choice locally.
-
-### Browser choice per context
-
-Web actions can use installed Chrome, Edge, Firefox or Brave. **Ask before each opening** is the default, so work and personal contexts can choose different browsers. AI Dev uses existing browser sessions; it never moves cookies or signs in for the user.
-
-## 🔌 MCP-aware, without pretending
-
-AI Dev inventories declarations from known Codex, Claude Desktop, Claude Code, Cursor, VS Code, Windsurf, selected-project and user-added configuration files. It creates paginated inspection keys without retaining server arguments, URLs, headers or environment variables.
-
-Inventory means **declared**, not connected. AI Dev does not start those MCP servers or claim their tools work.
-
-### Optional official Elgato MCP bridge
-
-```powershell
-pwsh -File scripts/Install.ps1 -ElgatoMcp
-```
-
-This installs the pinned official `@elgato/mcp-server@0.1.7` under private app data for new Codex and Claude sessions launched through AI Dev. Enable **MCP Deck** in Stream Deck and choose which virtual-deck actions to expose. Physical profile actions are not exposed automatically.
-
-## 🧠 Bring your own orchestrator
-
-The default is **None**. The optional orchestrator selector supports:
-
-- **Factory (external):** connect an existing `agentic-sdlc-factory` installation.
-- **Custom:** open a dashboard URL or launch an executable with explicit arguments.
-- **None:** use installed harnesses directly.
-
-The repository does not bundle Factory, OpenClaw, AX or another orchestrator. Generic integrations expose the external tool; they do not invent task, token, cost or agent telemetry.
-
-<details>
-<summary><strong>Factory adapter details</strong></summary>
-
-When selected, the Factory adapter starts or reuses its loopback workbench and opens it through the browser chooser. It verifies package identity, avoids unrelated services, binds to `127.0.0.1`, and reads canonical status through Factory's own interface. AI Dev does not bypass readiness, create canonical tasks from ordinary missions or start autonomous runs by itself.
-
-</details>
-
-## 🔒 Privacy and runtime evidence
-
-AI Dev keeps preferences, inventories, mission receipts, context snapshots, bridge dependencies and generated Stream Deck files outside the repository in `%LOCALAPPDATA%\AIDev`. Set `AI_DEV_DATA_DIR` to override the location, but do not point it inside a repository that will be published.
-
-Sessions record observed process states such as prepared, running, exited, interrupted or launch error. They do not claim that an objective succeeded, and token or cost usage remains unmeasured. Git snapshots contain status, diff statistics and recent commit subjects, not source contents.
-
-The panel exposes real diagnostics for tool/profile availability, data-directory access, configured MCP files, Git state and private logs. Detection does not read credentials or prove sign-in. See [engineering priorities](docs/ENGINEERING.md) for the evidence standard used by the project.
-
-<details>
-<summary><strong>Migration and troubleshooting</strong></summary>
-
-AI Dev migrates legacy `%LOCALAPPDATA%\AI Dev` data into `%LOCALAPPDATA%\AIDev` once without overwriting existing destination files. Generate and import a fresh deck profile after migration because old imported profiles retain their previous shortcut paths.
-
-Run the migration explicitly with:
-
-```powershell
-python scripts/migrate_data.py
-```
-
-Private logs are stored in `%LOCALAPPDATA%\AIDev\logs\aidev.log`. **Sessions** opens without PowerShell discovery, allowing recorded evidence to remain accessible when a startup profile or harness fails.
-
-</details>
-
-## ✅ Requirements
-
-- Windows
-- Python 3.11+ with Tk
-- PowerShell 7 for mission launches
-- An installed AI CLI for AI sessions
-- Elgato Stream Deck software and hardware only for physical-key control
-- Node.js 18+ and npm only for the optional Elgato MCP bridge
-
-The 15-key MK.2 layout is verified on hardware. Other supported grids are generated and audited automatically; use `python scripts/stream_deck.py --grid COLSxROWS` for an unlisted device.
-
-## 🧪 Quality gates
+## Development and verification
 
 ```powershell
 python -m unittest discover -s tests -v
+python scripts/agent_deck.py --no-import
 python scripts/export_public.py ..\ai-dev-stream-deck-source.zip
 ```
 
-Public CI runs the offline suite on Windows. The exporter uses an allowlist, includes the documentation images, and scans selected files for common secret formats and user-specific Windows paths. It excludes Git history, credentials, local profiles, missions, device archives and workstation inventories.
+The Windows generator validates the shortcuts through the native Windows Shell API. The profile auditor verifies navigation, action targets, page capacity and launcher files before import. Public CI runs the offline suite on Windows.
 
-Automated scanning is a guardrail, not proof that every possible secret format has been found. Review the export before publishing it.
+## Documentation
 
-## 📚 Documentation
-
+- [Complete Classic button map](docs/BUTTONS.md)
 - [First-run behavior](docs/FIRST-RUN.md)
-- [Complete button map](docs/BUTTONS.md)
 - [Engineering priorities](docs/ENGINEERING.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
@@ -243,8 +190,8 @@ Automated scanning is a guardrail, not proof that every possible secret format h
 
 <div align="center">
 
-Built for developers who want their AI tools at their fingertips without giving up control.
+Built for developers who want AI work to start at the speed of a keypress.
 
-**MIT licensed.**
+**Local-first. Agent-native. MIT licensed.**
 
 </div>

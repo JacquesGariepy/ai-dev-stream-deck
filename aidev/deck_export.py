@@ -8,7 +8,7 @@ from .deck_icons import icon_png
 from .deck_layout import Grid, Key, MODELS
 
 ACTION_UUID = {'open': 'system.open', 'folder': 'profile.openchild', 'back': 'profile.backtoparent',
-               'hotkey': 'system.hotkey', 'text': 'system.text'}
+               'hotkey': 'system.hotkey', 'text': 'system.text', 'website': 'system.website'}
 SUPPORTED = {'com.elgato.streamdeck.' + value for value in ACTION_UUID.values()}
 MAX_DEPTH = 8
 
@@ -92,6 +92,8 @@ def _action(key, links):
         settings = _hotkey_settings(key.target)
     elif kind == 'text':
         settings = {'isSendingEnter': False, 'pastedText': key.target}
+    elif kind == 'website':
+        settings = {'openInBrowser': True, 'path': key.target}
     else:
         settings = {}
     return {'ActionID': str(uuid.uuid4()), 'Name': key.name, 'UUID': 'com.elgato.streamdeck.' + ACTION_UUID[kind],
@@ -111,7 +113,7 @@ def write_profile(deck, output, device, links, grid=None):
     with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as archive:
         def write(path, data):
             archive.writestr(prefix + '/' + path, json.dumps(data, ensure_ascii=False))
-        write('manifest.json', {'Name': 'AI Dev ' + deck.language.upper(), 'Version': '3.0', 'Device': device,
+        write('manifest.json', {'Name': getattr(deck, 'profile_name', 'AI Dev ' + deck.language.upper()), 'Version': '3.0', 'Device': device,
                                 'Pages': {'Current': home, 'Default': pinned, 'Pages': [home]}})
         for identifier, name, slots in expander.instances:
             folder = 'Profiles/' + identifier.upper()
@@ -206,6 +208,10 @@ def audit_profile(path, shortcuts=None, grid=None):
                         raise ValueError('A hotkey is incomplete.')
                 elif kind == 'text':
                     counts['text'] += 1
+                elif kind == 'website':
+                    counts['website'] = counts.get('website', 0) + 1
+                    if not str(button.get('Settings', {}).get('path', '')).startswith('https://'):
+                        raise ValueError('A website key must use https.')
             if depth and not any(b.get('UUID', '').endswith('backtoparent') for b in layout.values()):
                 raise ValueError('A subpage has no Back key: ' + page.get('Name', ''))
         inspect_page(current, 0)
