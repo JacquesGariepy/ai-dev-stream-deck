@@ -96,8 +96,8 @@ def main():
         import subprocess
         project = settings().get('project', str(Path.home()))
         if args.action == 'terminal':
-            from .discovery import powershell
-            subprocess.Popen([powershell(), '-NoLogo'], cwd=project, creationflags=subprocess.CREATE_NEW_CONSOLE)
+            from .terminals import terminal_dialog
+            terminal_dialog()
         else:
             os.startfile(str(Path(__file__).parent.parent / 'README.md') if args.action == 'guide' else project)
     else:

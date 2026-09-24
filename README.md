@@ -113,6 +113,12 @@ The integration uses the Factory installation's virtual environment when present
 
 Factory's native workbench provides its task and execution controls. AI Dev displays budget/registration decisions and points you there; it does not invent a budget, bypass readiness, start autonomous runs, or create canonical tasks from ordinary CLI missions. The Factory installation target is independent of the mission project folder. The native workbench keeps its own last-selected project and language; check its project selector before acting. The AI Dev panel itself is bilingual, but this project does not translate Factory's separate interface.
 
+## Terminal chooser
+
+The Stream Deck **TERMINAL** button opens a bilingual chooser on every press. It discovers CMD, Windows PowerShell, PowerShell 7 installations, Git Bash, Windows Terminal, installed WSL distributions and common optional terminal applications. Discovery runs in the background without executing PowerShell profiles or starting WSL distributions. PowerShell profiles load when you actually open PowerShell.
+
+The selected project is the starting folder for supported shells. Generic terminal applications may override it with their own startup settings. The last choice is preselected; **Refresh** scans again, and **Add another executable** covers portable or custom installations outside known locations. Choices and executable paths remain private under `AIDev`; nothing is uploaded. Existing TERMINAL shortcuts use the chooser without reimporting the Stream Deck profile.
+
 ## Tests and public export
 
 ```powershell

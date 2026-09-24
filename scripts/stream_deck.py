@@ -63,7 +63,7 @@ def generate(output, device, language, links, entries=None):
             opened(label('CONTEXT','CONTEXTE'),'context','Capture Git metadata for the selected project. The action starts asynchronously; check the timestamp in the local context/latest.json file.'),
             opened('SESSIONS','status','Open local session receipts. Exited is not proof of a successful objective.'),
             folder(label('EDITOR','EDITEUR'),'editor'),folder('AI WEB','web'),
-            folder('PROMPTS','prompts'),opened('TERMINAL','terminal','Open PowerShell in the selected project.'),
+            folder('PROMPTS','prompts'),opened('TERMINAL','terminal','Choose a detected shell or terminal, including CMD, PowerShell, Git Bash and installed WSL distributions, in the selected project.'),
             folder(label('APPS','OUTILS'),'apps'),opened(label('PROJECT','PROJET'),'mission','Choose the project folder in the control panel.'),
             opened(label('CONTROL','PILOTAGE'),'factory-status','Read canonical Factory task states and pending decisions.'),
         ],

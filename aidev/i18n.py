@@ -3,6 +3,12 @@ import locale
 import os
 
 STRINGS = {
+    'terminals': ('Choose a terminal', 'Choisir un terminal'),
+    'terminal_note': ('Choose an installed shell or terminal. PowerShell loads your profiles. Other terminal apps may apply their own startup-folder settings.', 'Choisis un shell ou terminal installé. PowerShell charge tes profils. Les autres applications de terminal peuvent appliquer leur propre dossier de démarrage.'),
+    'terminal_name': ('Terminal / distribution', 'Terminal / distribution'),
+    'terminal_path': ('Executable', 'Exécutable'),
+    'terminal_add': ('Add another executable…', 'Ajouter un autre exécutable…'),
+    'terminal_count': ('{count} choices detected. Your last choice is preselected.', '{count} choix détectés. Ton dernier choix est présélectionné.'),
     'engineering_tab': ('Diagnostics','Diagnostic'),
     'engineering_note': ('Inspect live tool availability, storage access and local Git state. Checks run in the background. No agent, network fetch or paid request is started.', 'Inspecte la disponibilité des outils, les droits du dossier et l’état Git local. Les vérifications tournent en arrière-plan. Aucun agent, fetch réseau ou appel payant n’est lancé.'),
     'health': ('Check tools','Vérifier les outils'), 'git_state': ('Inspect Git','Inspecter Git'),
