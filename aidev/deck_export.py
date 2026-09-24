@@ -26,8 +26,9 @@ def _hotkey_settings(spec):
 class _Expander:
     """Expand pages into a native folder tree: one parent per folder, pagination by grid."""
 
-    def __init__(self, deck, grid, language):
+    def __init__(self, deck, grid, language, namespace=None):
         self.deck, self.grid, self.language = deck, grid, language
+        self.namespace = namespace
         self.instances = []   # (uuid, name, [Key|None ...] with folder targets resolved to uuids)
 
     def back(self):
@@ -58,7 +59,9 @@ class _Expander:
                 take = content if len(content) <= room else content[:room - 1]
                 chunks.append((lead, take))
                 content = content[len(take):]
-        identifiers = [str(uuid.uuid4()) for _ in chunks]
+        route = '/'.join((*stack, page_id))
+        identifiers = [str(uuid.uuid5(self.namespace, route + ':' + str(index))) if self.namespace else str(uuid.uuid4())
+                       for index in range(len(chunks))]
         for index, (identifier, (lead, chunk)) in enumerate(zip(identifiers, chunks)):
             name = page.name if index == 0 else page.name + '-' + str(index)
             slots = [*lead, *page.header, *chunk]
@@ -104,10 +107,12 @@ def _action(key, links):
 
 def write_profile(deck, output, device, links, grid=None):
     grid = grid or Grid.for_device(device)
-    expander = _Expander(deck, grid, deck.language)
+    stable = getattr(deck, 'stable_id', None)
+    namespace = uuid.uuid5(uuid.NAMESPACE_URL, stable + ':' + str((device or {}).get('UUID', ''))) if stable else None
+    expander = _Expander(deck, grid, deck.language, namespace)
     home = expander.expand('home')
-    pinned = str(uuid.uuid4())
-    prefix = str(uuid.uuid4()).upper() + '.sdProfile'
+    pinned = str(uuid.uuid5(namespace, 'pinned')) if namespace else str(uuid.uuid4())
+    prefix = (str(uuid.uuid5(namespace, 'profile')) if namespace else str(uuid.uuid4())).upper() + '.sdProfile'
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as archive:

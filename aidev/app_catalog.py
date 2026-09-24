@@ -10,8 +10,8 @@ from .storage import data_dir, save_json
 
 
 def category(name):
-    if re.search(r'^(ChatGPT|Claude|Codex|LM Studio|AnythingLLM|Ollama)\b',name,re.I):return 'agentic'
-    if re.search(r'Visual Studio|Cursor|Docker|Postman|Insomnia|GitHub|GitKraken|DBeaver|DataGrip|JetBrains|IntelliJ|PyCharm|Rider|WebStorm|Android Studio|Notepad\+\+|Windows Terminal|^Terminal$|PowerShell|WSL|Ubuntu|Debian|DevToys|WinMerge|Meld|Sublime|Neovim',name,re.I):return 'dev'
+    if re.search(r'^(ChatGPT|Claude|Codex|LM Studio|AnythingLLM|Ollama|Antigravity|Orca|Copilot)\b',name,re.I):return 'agentic'
+    if re.search(r'Visual Studio|Cursor|Windsurf|Docker|Postman|Insomnia|GitHub|GitKraken|DBeaver|DataGrip|JetBrains|IntelliJ|PyCharm|Rider|WebStorm|Android Studio|Notepad\+\+|Windows Terminal|^Terminal$|PowerShell|WSL|Ubuntu|Debian|DevToys|WinMerge|Meld|Sublime|Neovim|^Git |^Python |^IDLE|Dev Home|Developer Command|Google Cloud SDK|Hyper-V|ODBC',name,re.I):return 'dev'
     return 'daily'
 
 

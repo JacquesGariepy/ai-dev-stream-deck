@@ -1,4 +1,5 @@
 """Exercise real Tk widget transitions with isolated state and no provider launch."""
+import gc
 import os
 from pathlib import Path
 import tempfile
@@ -10,6 +11,14 @@ from aidev.storage import data_dir, save_json
 
 @unittest.skipUnless(os.name == 'nt', 'Windows Tk interface')
 class PanelTests(unittest.TestCase):
+    def setUp(self):
+        # Prior Tk roots contain reference cycles. Collect them on the UI thread
+        # before discovery workers start, so Tcl finalizers never run there.
+        gc.collect()
+
+    def tearDown(self):
+        gc.collect()
+
     def test_agentic_test_explains_direct_project_test_difference(self):
         from aidev.ui import Panel
         with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ,{'AI_DEV_DATA_DIR':folder}), patch('aidev.ui.discover',return_value={'entries':[]}):
@@ -61,6 +70,7 @@ class PanelTests(unittest.TestCase):
                 deadline=time.monotonic()+3
                 while panel.detecting and time.monotonic()<deadline:
                     panel.root.update();time.sleep(.02)
+                self.assertFalse(panel.detecting, 'Profile discovery did not finish')
                 self.assertEqual(panel.profile.get(),'claude-personal')
                 self.assertEqual(str(panel.open_button['state']),'normal')
             finally:gate.set();panel.root.destroy()
