@@ -91,7 +91,11 @@ class TerminalGitTests(unittest.TestCase):
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertIn('SECOND_ONLY.txt',result.stdout)
         self.assertNotIn('FIRST_ONLY.txt',result.stdout)
-        self.assertIn('AFTER='+str(second),result.stdout)
+        locations=[line.removeprefix('AFTER=') for line in result.stdout.splitlines() if line.startswith('AFTER=')]
+        self.assertEqual(len(locations),1)
+        # PowerShell expands Windows 8.3 aliases (for example RUNNER~1).
+        # File identity proves we stayed in the repository regardless of spelling.
+        self.assertTrue(Path(locations[0]).samefile(second))
 
     def test_git_failure_does_not_close_the_calling_shell(self):
         plain=self.folder/'not a repository'

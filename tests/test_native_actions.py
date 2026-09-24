@@ -54,7 +54,10 @@ class NativeActionsTests(unittest.TestCase):
                 solution.write_text('fixture', encoding='utf-8')
                 result = self.run_task(shell, dotnet, 'build')
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-                self.assertEqual(json.loads(self.capture.read_text()), ['build', str(solution)])
+                arguments = json.loads(self.capture.read_text())
+                self.assertEqual(arguments[:1], ['build'])
+                self.assertEqual(len(arguments), 2)
+                self.assertTrue(Path(arguments[1]).samefile(solution))
 
                 self.fixture_command('python', 7)
                 pytest = self.root / 'pytest project'
@@ -65,7 +68,7 @@ class NativeActionsTests(unittest.TestCase):
                 self.assertEqual(json.loads(self.capture.read_text()), ['-m', 'pytest'])
                 failure_path = self.root / 'private state/last-failure.json'
                 failure = json.loads(failure_path.read_text())
-                self.assertEqual(Path(failure['project']), pytest)
+                self.assertTrue(Path(failure['project']).samefile(pytest))
                 self.assertEqual(failure['exitCode'], 7)
                 self.assertIn('fixture output available for FIX', failure['outputTail'])
 
@@ -166,7 +169,7 @@ Write-Output 'Native COM verified; retired owned shortcut removed; user shortcut
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                 preparation = json.loads(result.stdout)
                 stage = Path(preparation['Stage'])
-                self.assertEqual(stage.parent, profiles)
+                self.assertTrue(stage.parent.samefile(profiles))
                 self.assertEqual((stage / image_entry).read_bytes(), b'fixture image')
                 self.assertFalse(Path(preparation['Target']).exists(), 'Preparation must not install or replace profiles')
 

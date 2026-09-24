@@ -57,7 +57,7 @@ function PrivateFixtureFunction { throw 'This helper should not be exported.' }
                     profile.write_bytes(original)
                     first = self.install(shell, runtime, profile)
                     self.assertTrue(first['changed'])
-                    self.assertEqual(Path(first['profile']), profile)
+                    self.assertTrue(Path(first['profile']).samefile(profile))
                     updated = profile.read_bytes()
                     self.assertTrue(updated.decode(encoding).startswith(original_text))
                     self.assertEqual(updated.decode(encoding).count('# BEGIN AI Dev terminal integration'), 1)
@@ -79,7 +79,9 @@ $fixtureModuleRoot = Join-Path (Split-Path -Parent $FixtureProfile) 'Modules'
 $env:PSModulePath = $fixtureModuleRoot + [IO.Path]::PathSeparator + $env:PSModulePath
 . $FixtureProfile
 $expectedModule = Join-Path $fixtureModuleRoot 'AIDevTerminal\\AIDevTerminal.psm1'
-if ((Get-Command Invoke-AIDevGit).Module.Path -ine $expectedModule) { throw 'The isolated fixture module was not imported.' }
+$actualModulePath = (Get-Item -LiteralPath (Get-Command Invoke-AIDevGit).Module.Path).FullName
+$expectedModulePath = (Get-Item -LiteralPath $expectedModule).FullName
+if ($actualModulePath -ine $expectedModulePath) { throw 'The isolated fixture module was not imported.' }
 $result = Invoke-AIDevGit -Action status
 [pscustomobject]@{result=$result; preserved=$global:FixturePreserved;
     module=(Get-Command Invoke-AIDevGit).ModuleName;
@@ -96,11 +98,13 @@ $result = Invoke-AIDevGit -Action status
                 result = self.run_ps(shell, wrapper, '-FixtureProfile', profile, env=environment)
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                 response = json.loads(result.stdout)
-                self.assertEqual(response['result'], {'action': 'status', 'runtime': str(runtime)})
+                self.assertEqual(response['result']['action'], 'status')
+                self.assertTrue(Path(response['result']['runtime']).samefile(runtime))
                 self.assertEqual(response['preserved'], 'kept')
                 self.assertEqual(response['module'], 'AIDevTerminal')
                 self.assertFalse(response['privateExported'])
-                self.assertEqual(json.loads((module_root / 'AIDevTerminal/runtime.json').read_text())['path'], str(runtime))
+                saved_runtime = json.loads((module_root / 'AIDevTerminal/runtime.json').read_text())['path']
+                self.assertTrue(Path(saved_runtime).samefile(runtime))
 
     def test_bomless_ansi_profile_text_is_not_silently_corrupted(self):
         # Windows profiles historically use the system ANSI code page as well
