@@ -13,9 +13,9 @@ Keys use native Stream Deck actions for shortcuts, or a small local PowerShell d
 
 ## What each area does
 
-**DEV:** detected build, test, lint, development server, types and format tasks; Git; editor and debugger shortcuts; terminals; local documentation links. Installed editors, Docker Desktop and other developer apps receive direct launch keys.
+**DEV:** detected build, test, lint, development server, types and format tasks; Git; editor and debugger shortcuts; terminals; local documentation links. Installed Orca, editors, Docker Desktop and other developer apps receive direct launch keys.
 
-**AI:** Claude Desktop and ChatGPT Desktop when installed, web services, CLI sessions, account profiles and task workflows. Desktop applications keep their own signed-in account. CLI work/personal selection does not change a desktop application's account.
+**AI:** Claude Desktop, ChatGPT Desktop and Orca when installed, web services, CLI sessions, account profiles and task workflows. Orca has a direct launch key on both DEV and AI. Desktop applications keep their own signed-in account. CLI work/personal selection does not change a desktop application's account.
 
 **DAILY:** Calculator, Notepad, files, Run, Windows Search, lock, clipboard operations, display, sound, network, Bluetooth, storage, standard folders, services and events. Task Manager, Resource Monitor, Performance Monitor and System Information show real Windows diagnostics.
 

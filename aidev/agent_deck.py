@@ -210,7 +210,7 @@ class AgentDeck:
             a('GUIDE', 'help', 'document', 'nav', 'Open the local deck guide.')])
 
         desktop_ai = self._featured(('claude', 'chatgpt', 'claude desktop', 'chatgpt desktop'), 2)
-        ai_keys = [self.app(entry) for entry in desktop_ai]
+        ai_keys = [self.app(entry) for entry in desktop_ai + self._featured(('orca',), 1)]
         for name, icon in (('chatgpt', 'chatgpt'), ('claude', 'claude')):
             if not any(entry['name'].casefold() in (name, name + ' desktop') for entry in desktop_ai):
                 ai_keys.append(web(name.upper() + '\nWEB', name, icon, 'agent'))
@@ -265,7 +265,7 @@ class AgentDeck:
             a(L('PROJECT', 'PROJET'), 'project', 'folder', 'dev', 'Choose the working project.'),
             W('FILES', 'FICHIERS', 'files', 'folder'), F('DOCS', 'docs', 'document', 'web'),
             F('POWER USER', 'power-user', 'terminal', 'system'),
-            *[self.app(entry) for entry in self._featured(FEATURED_DEV, 5)]])
+            *[self.app(entry) for entry in self._featured(('orca',) + FEATURED_DEV, 5)]])
 
         self.pages['clipboard'] = Page('clipboard', [
             H(L('COPY', 'COPIER'), 67, 'clipboard', 'system', ctrl=True), H(L('PASTE', 'COLLER'), 86, 'clipboard', 'system', ctrl=True),
